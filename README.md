@@ -23,7 +23,7 @@ Submit using bleah:
 
 ### Flag Hints
 | Flag | Description | Hint |
-| --- | --- | --- |
+| ------- | ----------------------------- | ------- |
 | Flag 1 | This flag is a gift and can only be obtained from reading the hint!  It is meant to test your device to make sure it is working and give you an idea of how to write to a ble gatt handle if you have never done so before. | Read Me! |
 | Flag 2 | | |
 | Flag 3 | | |
