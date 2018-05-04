@@ -24,7 +24,7 @@ Submit using bleah:
 ### Flag Hints
 | Flag | Description | Hint |
 | ------- | ----------------------------- | ------- |
-| Flag 1 | This flag is a gift and can only be obtained from reading the hint! | Read Me! |
+| Flag 1 | This flag is a gift and can \nonly be obtained from reading the hint! | Read Me! |
 | Flag 2 | | |
 | Flag 3 | | |
 | Flag 4 | | |
