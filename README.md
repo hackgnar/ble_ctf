@@ -6,10 +6,11 @@ some info about the project....
 ### How to Submit Flags
 
 All flags are md5 sums trunkated to 20 characters.  They can be submited to the gatt server on handle 42.  The following are examples of how to submit a flag:
-Submit using gatttool:
+
+Submit using gatttool: 
 ```` gatttool -b 30:ae:a4:20:79:da --char-write-req -a 0x002f -n 0x0001 ````
 
-Submit using bleah:
+Submit using bleah: 
 ```` sudo bleah -b "30:ae:a4:20:79:da" -u "0000ff03-0000-1000-8000-00805f9b34fb" -d "hello world" ````
 
 ### Flag Hints
