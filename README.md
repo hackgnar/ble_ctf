@@ -13,7 +13,15 @@ Discover MAC using hcitool:
 Discover MAC using bleah:   
 ```` sudo bleah ````
 
-Now that you have found your devices MAC address, you can now submit flags to it.  All flags are md5 sums trunkated to 20 characters to avoid MTU limits by some hardware.  They can be submited to the gatt server on handle 42.  The following are examples of how to submit a flag.  Make sure you replace the MAC address in the example commands with the MAC address of your device:   
+Now that you have found your devices MAC address, you can now talk to it.  Before we get started with flags, lets check out how we can see our current score.  In order to see where you are in the CTF, you can read from handle 12 on the device to see how many flags you have.  The following are examples of how to view your current score.  Make sure you replace the MAC address in the example commands with the MAC address of your device. 
+
+Show score with gatttool:  
+```` gatttool -b 30:ae:a4:20:79:da --char-read -a 12  ````
+
+Show score with bleah:  
+```` sudo bleah -b "30:ae:a4:20:79:da" -h 12 ````
+
+Ok, ok, ok, on with the flags.  All flags are md5 sums trunkated to 20 characters to avoid MTU limits by some hardware.  They can be submited to the gatt server on handle 42.  The following are examples of how to submit a flag.  Make sure you replace the MAC address in the example commands with the MAC address of your device:   
 
 Submit using gatttool:  
 ```` gatttool -b 30:ae:a4:20:79:da --char-write-req -a 0x002f -n 0x0001 ````
@@ -24,23 +32,23 @@ Submit using bleah:
 ### Flag Hints
 | Flag | Description | Hint |
 | ------- | ----------------------------- | ------- |
-| Flag 1 | This flag is a gift and can \nonly be obtained from reading the hint! | Read Me! |
-| Flag 2 | | |
-| Flag 3 | | |
-| Flag 4 | | |
-| Flag 5 | | |
-| Flag 6 | | |
-| Flag 7 | | |
-| Flag 8 | | |
-| Flag 9 | | |
-| Flag 10 | | |
-| Flag 11 | | |
-| Flag 12 | | |
-| Flag 13 | | |
-| Flag 14 | | |
-| Flag 15 | | |
-| Flag 16 | | |
-| Flag 17 | | |
-| Flag 18 | | |
-| Flag 19 | | |
-| Flag 20 | | |
+| Flag 1 | This flag is a gift and can only be obtained from reading the hint! | Read Me! |
+| Flag 2 | Learn about discoverable device attributes | More |
+| Flag 3 | Learn how to read handles | More |
+| Flag 4 | Read handle puzzle fun | More |
+| Flag 5 | Learn about BT client device attributes | More |
+| Flag 6 | Learn about connection attributes | More |
+| Flag 7 | Learn about reading and writing to handles | More |
+| Flag 8 | Learn about brute write fuzzing | More |
+| Flag 9 | Learn about notifications | More |
+| Flag 10 | Learn about BT broadcast messages | More |
+| Flag 11 | Learn about responses | More |
+| Flag 12 | Learn about connection security attributes | More |
+| Flag 13 | Learn about indications | More |
+| Flag 14 | Handle puzzle fun | More |
+| Flag 15 | Hard handle puzzle fun | More |
+| Flag 16 | Harder handle puzzle fun | More |
+| Flag 17 | Harderer handle puzzle fun | More |
+| Flag 18 | Abuse me | More |
+| Flag 19 | Exaust me | More |
+| Flag 20 | Not gonna tell! | More |
