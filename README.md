@@ -1,5 +1,14 @@
 ## BLE Capture the Flag
-some info about the project....
+The purpose of BTL CTF is to teach the core concepts of Bluetooth low energy client and server interactions.  While its is also built to be fun, it was built with the intent to teach core concepts that are needed to plunge into the world of bluetooth hacking.  After completing this CTF, you should have everything you need to start fiddling with any BLE GATT device you can find.
+
+## Setting Up the CTF
+In order to set up the CTF you will need the following:
+1. The code in this repository to build the CTF GATT server
+2. An esp32 microcontroler
+3. A computer (preferably OSX or Linux) with a bluetooth controller or a bluetooth usb dongle
+4. Bluetooth tools such as Bluez tools (hcitool, gattttool, etc) or bleah
+
+To get setup, [read this documentation](docs/setup.md)
 
 ## Flags
 
@@ -32,23 +41,23 @@ Submit using bleah:
 ### Flag Hints
 | Flag | Description | Hint |
 | ------- | ----------------------------- | ------- |
-| Flag 1 | This flag is a gift and can only be obtained from reading the hint! | Read Me! |
-| Flag 2 | Learn about discoverable device attributes | More |
-| Flag 3 | Learn how to read handles | More |
-| Flag 4 | Read handle puzzle fun | More |
-| Flag 5 | Learn about BT client device attributes | More |
-| Flag 6 | Learn about connection attributes | More |
-| Flag 7 | Learn about reading and writing to handles | More |
-| Flag 8 | Learn about brute write fuzzing | More |
-| Flag 9 | Learn about notifications | More |
-| Flag 10 | Learn about BT broadcast messages | More |
-| Flag 11 | Learn about responses | More |
-| Flag 12 | Learn about connection security attributes | More |
-| Flag 13 | Learn about indications | More |
-| Flag 14 | Handle puzzle fun | More |
-| Flag 15 | Hard handle puzzle fun | More |
-| Flag 16 | Harder handle puzzle fun | More |
-| Flag 17 | Harderer handle puzzle fun | More |
-| Flag 18 | Abuse me | More |
-| Flag 19 | Exaust me | More |
-| Flag 20 | Not gonna tell! | More |
+| Flag 1 | This flag is a gift and can only be obtained from reading the hint! | [Read Me!](docs/hints/flag1.md) |
+| Flag 2 | Learn about discoverable device attributes | [More](docs/hints/flag1.md) |
+| Flag 3 | Learn how to read handles | [More](docs/hints/flag1.md) |
+| Flag 4 | Read handle puzzle fun | [More](docs/hints/flag1.md) |
+| Flag 5 | Learn about BT client device attributes | [More](docs/hints/flag1.md) |
+| Flag 6 | Learn about connection attributes | [More](docs/hints/flag1.md) |
+| Flag 7 | Learn about reading and writing to handles | [More](docs/hints/flag1.md) |
+| Flag 8 | Learn about brute write fuzzing | [More](docs/hints/flag1.md) |
+| Flag 9 | Learn about notifications | [More](docs/hints/flag1.md) |
+| Flag 10 | Learn about BT broadcast messages | [More](docs/hints/flag1.md) |
+| Flag 11 | Learn about responses | [More](docs/hints/flag1.md) |
+| Flag 12 | Learn about connection security attributes | [More](docs/hints/flag1.md) |
+| Flag 13 | Learn about indications | [More](docs/hints/flag1.md) |
+| Flag 14 | Handle puzzle fun | [More](docs/hints/flag1.md) |
+| Flag 15 | Hard handle puzzle fun | [More](docs/hints/flag1.md) |
+| Flag 16 | Harder handle puzzle fun | [More](docs/hints/flag1.md) |
+| Flag 17 | Harderer handle puzzle fun | [More](docs/hints/flag1.md) |
+| Flag 18 | Abuse me | [More](docs/hints/flag1.md) |
+| Flag 19 | Exaust me | [More](docs/hints/flag1.md) |
+| Flag 20 | Not gonna tell! | [More](docs/hints/flag1.md) |
