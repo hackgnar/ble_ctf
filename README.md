@@ -6,7 +6,7 @@ In order to set up the CTF you will need the following:
 1. The code in this repository to build the CTF GATT server
 2. An esp32 microcontroller
 3. A computer (preferably OSX or Linux) with a bluetooth controller or a bluetooth usb dongle
-4. Bluetooth tools such as Bluez tools (hcitool, gatttool, etc) or bleah (https://github.com/evilsocket/bleah)
+4. Bluetooth tools such as Bluez tools (hcitool, gatttool, etc) or [bleah](https://github.com/evilsocket/bleah)
 
 To get setup, [read this documentation](docs/setup.md)
 
