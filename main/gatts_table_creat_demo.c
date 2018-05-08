@@ -43,8 +43,6 @@
 #define ADV_CONFIG_FLAG             (1 << 0)
 #define SCAN_RSP_CONFIG_FLAG        (1 << 1)
 
-static char writeData[100];
-int BLINK_GPIO=2;
 
 static uint8_t adv_config_done       = 0;
 
@@ -66,9 +64,9 @@ static uint8_t raw_adv_data[] = {
         0x02, 0x0a, 0xeb,
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
-        /* device name */
-        //0x0b, 0x08, 'B', 'Y', ':', 'H', 'A', 'C', 'K', 'G', 'N', 'A', 'R',
-        0x0b, 0x09, 'M', 'D', '5', ' ', 'O', 'F', ' ', 'A', 'H', 'A'
+        /* device name (first number is the length) */
+        0x07, 0x09, 'B', 'L', 'E', 'C', 'T', 'F'
+
 };
 static uint8_t raw_scan_rsp_data[] = {
         /* flags */
@@ -173,9 +171,16 @@ static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRIT
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
 static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
-static const uint8_t score_read_value[11]                 = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
-static const uint8_t flag_read_value[16]                 = {'W', 'r', 'i', 't', 'e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
+
+// start ctf data vars
+static char writeData[100];
+static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
+static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
+static const uint8_t flag_read_value[16] = {'W', 'r', 'i', 't', 'e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
 int read_counter = 0;
+int score = 0;
+static char string_score[10] = "0";
+int BLINK_GPIO=2;
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -240,6 +245,28 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
 };
+
+static void set_score()
+{
+    //set scores
+    score = 0;
+    for (int i = 0 ; i < 20 ; ++i)
+    {
+        if (flag_state[i] == 'T'){
+            score += 1;
+        }
+    }
+    
+    itoa(score, string_score, 10);
+    for (int i = 0 ; i < strlen(string_score) ; ++i)
+    {
+        if (strlen(string_score) == 1){
+            score_read_value[7] = ' ';}
+        score_read_value[6+i] = string_score[i];
+    }
+    esp_ble_gatts_set_attr_value(0x002a, sizeof score_read_value, score_read_value);
+}
+
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
     switch (event) {
@@ -326,7 +353,6 @@ void example_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t 
             gatt_rsp->attr_value.handle = param->write.handle;
             gatt_rsp->attr_value.offset = param->write.offset;
             gatt_rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-            ESP_LOGE(GATTS_TABLE_TAG, "write ln 333");
             memcpy(gatt_rsp->attr_value.value, param->write.value, param->write.len);
             esp_err_t response_err = esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, status, gatt_rsp);
             if (response_err != ESP_OK){
@@ -340,7 +366,6 @@ void example_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t 
     if (status != ESP_GATT_OK){
         return;
     }
-    ESP_LOGE(GATTS_TABLE_TAG, "write ln 347");
     memcpy(prepare_write_env->prepare_buf + param->write.offset,
            param->write.value,
            param->write.len);
@@ -403,46 +428,44 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
        	    break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
+            read_counter += 1;
+            //set gpio
             gpio_pad_select_gpio(BLINK_GPIO);
             /* Set the GPIO as a push/pull output */
             gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
             gpio_set_level(BLINK_GPIO, 1);
-            read_counter += 1;
-            ESP_LOGI(GATTS_TABLE_TAG, "There have been %i reads to this device", read_counter);
+
+
+
        	    break;
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT");
-            //by default, listens for writes on 47 & 42
-            //42 has the read/write/notify flags
-            //47 has write only
-            //esp_ble_gatts_set_attr_value(0x0029, param->write.len, param->write.value);
-            //esp_ble_gatts_set_attr_value(0x0031, param->write.len, param->write.value);
-            //esp_ble_gatts_set_attr_value(0x0033, param->write.len, param->write.value);
-            //esp_ble_gatts_set_attr_value(0x002a, sizeof foo_value, foo_value);
+            
             if (!param->write.is_prep){
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
 
-                //if (param->write.handle == 47)
-                //{
-                //    ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE in 47");
-                //}
-                //ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE HERE");
-                memset(writeData, 0, sizeof writeData);
-                //memcpy(writeData, param->write.value, param->write.len);
-                ESP_LOGE(GATTS_TABLE_TAG, "write ln 429");
-                memcpy(writeData, param->write.value, 20);
-                
-                ESP_LOGI(GATTS_TABLE_TAG, "XXXXX %s XXXXX", writeData);
-                //if (strcmp(writeData,"2b00042f7481c7b056c4b410d28f33cf") == 0){
-                if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
-                    ESP_LOGI(GATTS_TABLE_TAG, "flag 1 found 'device name'");
+                //handle flags
+                if (param->write.handle == 44)
+                {
+                    // make sure flag read value stays static
+                    esp_ble_gatts_set_attr_value(0x002c, sizeof flag_read_value, flag_read_value);
+                    // store write data for flag checking
+                    memset(writeData, 0, sizeof writeData);
+                    memcpy(writeData, param->write.value, 20); 
+
+                    //TODO: break this out into a function
+                    if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
+                        //attributes device name
+                        flag_state[0] = 'T';
+                    }
+                    if (strcmp(writeData,"0096ff9a0051c6f82607") == 0){
+                        //md5 of device name
+                        flag_state[1] = 'T';
+                    }
+                    ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
+                    set_score();
                 }
-                //if (strcmp(writeData,"c6409a1abd80c82df3c71bb00f2d1b64") == 0){
-                if (strcmp(writeData,"c6409a1abd80c82df3c7") == 0){
-                    ESP_LOGI(GATTS_TABLE_TAG, "flag 2 found 'md5 of aha'");
-                }
-                
                 /* send response when param->write.need_rsp is true*/
                 if (param->write.need_rsp){
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
@@ -469,7 +492,6 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
             esp_log_buffer_hex(GATTS_TABLE_TAG, param->connect.remote_bda, 6);
             esp_ble_conn_update_params_t conn_params = {0};
-            ESP_LOGE(GATTS_TABLE_TAG, "write ln 468"); //this line is not writing to handle value
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             /* For the IOS system, please reference the apple official documents about the ble connection parameters restrictions. */
             conn_params.latency = 0;
@@ -493,7 +515,6 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             }
             else {
                 ESP_LOGI(GATTS_TABLE_TAG, "create attribute table successfully, the number handle = %d\n",param->add_attr_tab.num_handle);
-                ESP_LOGE(GATTS_TABLE_TAG, "write ln 492");
                 memcpy(heart_rate_handle_table, param->add_attr_tab.handles, sizeof(heart_rate_handle_table));
                 esp_ble_gatts_start_service(heart_rate_handle_table[IDX_SVC]);
             }
