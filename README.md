@@ -45,10 +45,10 @@ Submit using bleah:
 | Flag 2 | Learn about discoverable device attributes | [More](docs/hints/flag2.md) |
 | Flag 3 | Learn how to read handles | [More](docs/hints/flag3.md) |
 | Flag 4 | Read handle puzzle fun | [More](docs/hints/flag4.md) |
-| Flag 5 | Learn about BT client device attributes | [More](docs/hints/flag5.md) |
-| Flag 6 | Learn about connection attributes | [More](docs/hints/flag6.md) |
-| Flag 7 | Learn about reading and writing to handles | [More](docs/hints/flag7.md) |
-| Flag 8 | Learn about brute write fuzzing | [More](docs/hints/flag8.md) |
+| Flag 5 | Learn about reading and writing to handles | [More](docs/hints/flag5.md) |
+| Flag 6 | More reading and writing to handles | [More](docs/hints/flag6.md) |
+| Flag 7 | Learn about write fuzzing | [More](docs/hints/flag7.md) |
+| Flag 8 | Learn about BT client device attributes | [More](docs/hints/flag8.md) |
 | Flag 9 | Learn about notifications | [More](docs/hints/flag9.md) |
 | Flag 10 | Learn about BT broadcast messages | [More](docs/hints/flag10.md) |
 | Flag 11 | Learn about responses | [More](docs/hints/flag11.md) |
