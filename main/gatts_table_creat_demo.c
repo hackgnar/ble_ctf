@@ -155,13 +155,17 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 };
 
 /* Service */
-static const uint16_t GATTS_SERVICE_UUID_TEST               = 0x00FF;
-static const uint16_t GATTS_CHAR_UUID_SCORE                 = 0xFF01;
-static const uint16_t GATTS_CHAR_UUID_FLAG                  = 0xFF02;
-static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_READ      = 0xFF03;
-static const uint16_t GATTS_CHAR_UUID_FLAG_MD5              = 0xFF04;
-static const uint16_t GATTS_CHAR_UUID_TEST_A                = 0xFF05;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                = 0xFF06;
+static const uint16_t GATTS_SERVICE_UUID_TEST                   = 0x00FF;
+static const uint16_t GATTS_CHAR_UUID_SCORE                     = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_FLAG                      = 0xFF02;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_READ          = 0xFF03;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MD5                  = 0xFF04;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE         = 0xFF05;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2_READ   = 0xFF06;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2        = 0xFF07;
+static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF08;
+static const uint16_t GATTS_CHAR_UUID_TEST_A                    = 0xFF09;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0a;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -177,7 +181,8 @@ static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
 static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
-static const uint8_t flag_read_value[16] = {'W', 'r', 'i', 't', 'e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
+static const uint8_t simple_write_flag[16] = {'W','r','i','t','e',' ','0','x','0','7',' ','t','o',' ','m','e'};
+static const uint8_t flag_read_value[16] = {'W','r','i','t','e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
 int read_counter = 0;
 int score = 0;
 static char string_score[10] = "0";
@@ -231,8 +236,45 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MD5, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof("MD5 of Device Name")-1, (uint8_t *)"MD5 of Device Name"}},
 
+    /* FLAG simple write Characteristic Declaration */
+    [IDX_CHAR_FLAG_SIMPLE_WRITE]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
 
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_SIMPLE_WRITE]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(simple_write_flag), (uint8_t *)simple_write_flag}},
 
+//    /* FLAG MD5 Characteristic Declaration */
+//    [IDX_CHAR_FLAG_SIMPLE]      =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+//      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+//
+//    /* Characteristic Value */
+//    [IDX_CHAR_VAL_FLAG_MD5]  =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MD5, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+//      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof("MD5 of Device Name")-1, (uint8_t *)"MD5 of Device Name"}},
+//
+//    /* Characteristic Declaration */
+//    [IDX_CHAR_C]      =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+//      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_write}},
+//
+//    /* Characteristic Value */
+//    [IDX_CHAR_VAL_C]  =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+//      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+//
+//    /* Characteristic Declaration */
+//    [IDX_CHAR_C]      =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+//      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_write}},
+//
+//    /* Characteristic Value */
+//    [IDX_CHAR_VAL_C]  =
+//    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+//      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_A]     =
@@ -258,6 +300,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+
 };
 
 static void set_score()
@@ -458,15 +501,27 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (!param->write.is_prep){
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+                
+                // store write data for flag checking
+                memset(writeData, 0, sizeof writeData);
+                memcpy(writeData, param->write.value, 20); 
 
+                if (param->write.handle == 50)
+                {
+                    uint16_t descr_value = param->write.value[1]<<8 |param->write.value[0];
+                    if (descr_value == 0x0007){
+                        esp_ble_gatts_set_attr_value(0x0032, 20, (uint8_t *)"1179080b29f8da16ad66");
+                    }
+                    else
+                    {
+                        esp_ble_gatts_set_attr_value(0x0032, sizeof simple_write_flag, simple_write_flag);
+                    }
+                }
                 //handle flags
                 if (param->write.handle == 44)
                 {
                     // make sure flag read value stays static
                     esp_ble_gatts_set_attr_value(0x002c, sizeof flag_read_value, flag_read_value);
-                    // store write data for flag checking
-                    memset(writeData, 0, sizeof writeData);
-                    memcpy(writeData, param->write.value, 20); 
 
                     //TODO: break this out into a function
                     if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
@@ -480,6 +535,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     if (strcmp(writeData,"0096ff9a0051c6f82607") == 0){
                         //md5 of device name
                         flag_state[2] = 'T';
+                    }
+                    if (strcmp(writeData,"1179080b29f8da16ad66") == 0){
+                        //md5 of device name
+                        flag_state[3] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
