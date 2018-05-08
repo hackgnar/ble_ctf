@@ -16,6 +16,13 @@
 enum
 {
     IDX_SVC,
+
+    IDX_CHAR_SCORE,
+    IDX_CHAR_VAL_SCORE,
+
+    IDX_CHAR_FLAG,
+    IDX_CHAR_VAL_FLAG,
+    
     IDX_CHAR_A,
     IDX_CHAR_VAL_A,
     IDX_CHAR_CFG_A,
@@ -26,11 +33,6 @@ enum
     IDX_CHAR_C,
     IDX_CHAR_VAL_C,
 
-    IDX_CHAR_D,
-    IDX_CHAR_VAL_D,
-
-    IDX_CHAR_E,
-    IDX_CHAR_VAL_E,
-    
+   
     HRS_IDX_NB,
 };

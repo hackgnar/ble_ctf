@@ -158,11 +158,11 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 
 /* Service */
 static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FF;
-static const uint16_t GATTS_CHAR_UUID_TEST_A       = 0xFF01;
-static const uint16_t GATTS_CHAR_UUID_TEST_B       = 0xFF02;
-static const uint16_t GATTS_CHAR_UUID_TEST_C       = 0xFF03;
-static const uint16_t GATTS_CHAR_UUID_TEST_D       = 0x0029;
-static const uint16_t GATTS_CHAR_UUID_TEST_E       = 0x0030;
+static const uint16_t GATTS_CHAR_UUID_SCORE        = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_FLAG         = 0xFF02;
+static const uint16_t GATTS_CHAR_UUID_TEST_A       = 0xFF03;
+static const uint16_t GATTS_CHAR_UUID_TEST_B       = 0xFF04;
+static const uint16_t GATTS_CHAR_UUID_TEST_C       = 0xFF05;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -173,8 +173,9 @@ static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRIT
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
 static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
-//static const uint8_t foo_value[8]                 = {0x6c, 0x65, 0x65, 0x74, 0x6c, 0x65, 0x65, 0x74};
-static const uint8_t foo_value[8]                 = {'h', 'e', 'l', 'l', 'o', ' ', 'm', 'e'};
+static const uint8_t score_read_value[11]                 = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
+static const uint8_t flag_read_value[16]                 = {'W', 'r', 'i', 't', 'e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
+int read_counter = 0;
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -183,6 +184,26 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_SVC]        =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_TEST), (uint8_t *)&GATTS_SERVICE_UUID_TEST}},
+
+    /* SCORE Characteristic Declaration */
+    [IDX_CHAR_SCORE]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* SCORE Characteristic Value */
+    [IDX_CHAR_VAL_SCORE]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_SCORE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(score_read_value), (uint8_t *)score_read_value}},
+//////
+    /* FLAG Characteristic Declaration */
+    [IDX_CHAR_FLAG]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* FLAG Characteristic Value */
+    [IDX_CHAR_VAL_FLAG]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_read_value), (uint8_t *)flag_read_value}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_A]     =
@@ -218,30 +239,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_C]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
-
-
-///////////////////////////////////////
-    /* Characteristic Declaration */
-    [IDX_CHAR_D]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_D]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_D, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(foo_value), (uint8_t *)foo_value}},
-//////
-    /* Characteristic Declaration */
-    [IDX_CHAR_E]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_E]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_E, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(foo_value), (uint8_t *)foo_value}},
-///////////////////////////////////////
-
 };
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
@@ -368,6 +365,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 {
     switch (event) {
         case ESP_GATTS_REG_EVT:{
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_REG_EVT");
             esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
             if (set_dev_name_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
@@ -405,29 +403,31 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
        	    break;
         case ESP_GATTS_READ_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
+            gpio_pad_select_gpio(BLINK_GPIO);
+            /* Set the GPIO as a push/pull output */
+            gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
+            gpio_set_level(BLINK_GPIO, 1);
+            read_counter += 1;
+            ESP_LOGI(GATTS_TABLE_TAG, "There have been %i reads to this device", read_counter);
        	    break;
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT");
             //by default, listens for writes on 47 & 42
             //42 has the read/write/notify flags
             //47 has write only
-            esp_ble_gatts_set_attr_value(0x0029, param->write.len, param->write.value);
-            esp_ble_gatts_set_attr_value(0x0031, param->write.len, param->write.value);
-            esp_ble_gatts_set_attr_value(0x0033, param->write.len, param->write.value);
-            esp_ble_gatts_set_attr_value(0x002a, sizeof foo_value, foo_value);
+            //esp_ble_gatts_set_attr_value(0x0029, param->write.len, param->write.value);
+            //esp_ble_gatts_set_attr_value(0x0031, param->write.len, param->write.value);
+            //esp_ble_gatts_set_attr_value(0x0033, param->write.len, param->write.value);
+            //esp_ble_gatts_set_attr_value(0x002a, sizeof foo_value, foo_value);
             if (!param->write.is_prep){
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
 
-                gpio_pad_select_gpio(BLINK_GPIO);
-                /* Set the GPIO as a push/pull output */
-                gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-                gpio_set_level(BLINK_GPIO, 1);
-                if (param->write.handle == 47)
-                {
-                    ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE in 47");
-                }
-                ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE HERE");
+                //if (param->write.handle == 47)
+                //{
+                //    ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE in 47");
+                //}
+                //ESP_LOGI(GATTS_TABLE_TAG, "YOU ARE HERE");
                 memset(writeData, 0, sizeof writeData);
                 //memcpy(writeData, param->write.value, param->write.len);
                 ESP_LOGE(GATTS_TABLE_TAG, "write ln 429");
