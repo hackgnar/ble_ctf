@@ -543,29 +543,33 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     esp_ble_gatts_set_attr_value(0x002c, sizeof flag_read_value, flag_read_value);
 
                     //TODO: break this out into a function
-                    if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
+                    if (strcmp(writeData,"12345678901234567890") == 0){
                         //attributes device name
                         flag_state[0] = 'T';
                     }
+                    if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
+                        //attributes device name
+                        flag_state[1] = 'T';
+                    }
                     if (strcmp(writeData,"d205303e099ceff44835") == 0){
                         //simple read
-                        flag_state[1] = 'T';
+                        flag_state[2] = 'T';
                     }
                     if (strcmp(writeData,"0096ff9a0051c6f82607") == 0){
                         //md5 of device name
-                        flag_state[2] = 'T';
+                        flag_state[3] = 'T';
                     }
                     if (strcmp(writeData,"1179080b29f8da16ad66") == 0){
                         //simple write
-                        flag_state[3] = 'T';
+                        flag_state[4] = 'T';
                     }
                     if (strcmp(writeData,"f8b136d937fad6a2be9f") == 0){
                         //read & write
-                        flag_state[4] = 'T';
+                        flag_state[5] = 'T';
                     }
                     if (strcmp(writeData,"933c1fcfa8ed52d2ec05") == 0){
                         //brute write
-                        flag_state[5] = 'T';
+                        flag_state[6] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
