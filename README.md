@@ -22,21 +22,21 @@ Discover MAC using hcitool:
 Discover MAC using bleah:   
 ```` sudo bleah ````
 
-Now that you have found your device’s MAC address, you can now communicate with it.  Before we get started with flags, let’s check out how we can see our current score.  In order to see where you are in the CTF, you can read from handle 12 on the device to see how many flags you have.  The following are example commands of how to view your current score.  Make sure you replace the MAC address in the example commands with the MAC address of your device. 
+Now that you have found your device’s MAC address, you can now communicate with it.  Before we get started with flags, let’s check out how we can see our current score.  In order to see where you are in the CTF, you can read from handle 42 on the device to see how many flags you have.  The following are example commands of how to view your current score.  Make sure you replace the MAC address in the example commands with the MAC address of your device. 
 
 Show score with gatttool:  
-```` gatttool -b 30:ae:a4:20:79:da --char-read -a 12  ````
+```` gatttool -b 30:ae:a4:20:79:da --char-read -a 0x002a  ````
 
 Show score with bleah:  
-```` sudo bleah -b "30:ae:a4:20:79:da" -h 12 ````
+```` sudo bleah -b "30:ae:a4:20:79:da" -h 0x002a ````
 
-Ok, ok, ok, on to the flags! All flags are md5 sums truncated to 20 characters to avoid MTU limits by some hardware.  They can be submitted to the gatt server on handle 42.  The following are examples of how to submit a flag.  Make sure you replace the MAC address in the example commands with the MAC address of your device:   
+Ok, ok, ok, on to the flags! All flags are md5 sums truncated to 20 characters to avoid MTU limits by some hardware.  They can be submitted to the gatt server on handle 44.  The following are examples of how to submit a flag.  Make sure you replace the MAC address in the example commands with the MAC address of your device:   
 
 Submit using gatttool:  
-```` gatttool -b 30:ae:a4:20:79:da --char-write-req -a 0x002f -n 0x0001 ````
+```` gatttool -b 30:ae:a4:20:79:da --char-write-req -a 0x002c -n 0x0001 ````
 
 Submit using bleah:  
-```` sudo bleah -b "30:ae:a4:20:79:da" -u "0000ff03-0000-1000-8000-00805f9b34fb" -d "hello world" ````
+```` sudo bleah -b "30:ae:a4:20:79:da" -n 0x002c -d "some flag value" ````
 
 ### Flag Hints
 | Flag | Description | Hint |
