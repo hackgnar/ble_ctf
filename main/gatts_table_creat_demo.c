@@ -155,12 +155,13 @@ static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
 };
 
 /* Service */
-static const uint16_t GATTS_SERVICE_UUID_TEST      = 0x00FF;
-static const uint16_t GATTS_CHAR_UUID_SCORE        = 0xFF01;
-static const uint16_t GATTS_CHAR_UUID_FLAG         = 0xFF02;
-static const uint16_t GATTS_CHAR_UUID_TEST_A       = 0xFF03;
-static const uint16_t GATTS_CHAR_UUID_TEST_B       = 0xFF04;
-static const uint16_t GATTS_CHAR_UUID_TEST_C       = 0xFF05;
+static const uint16_t GATTS_SERVICE_UUID_TEST               = 0x00FF;
+static const uint16_t GATTS_CHAR_UUID_SCORE                 = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_FLAG                  = 0xFF02;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_READ      = 0xFF03;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MD5              = 0xFF04;
+static const uint16_t GATTS_CHAR_UUID_TEST_A                = 0xFF05;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                = 0xFF06;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -210,6 +211,29 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_read_value), (uint8_t *)flag_read_value}},
 
+    /* FLAG MD5 Characteristic Declaration */
+    [IDX_CHAR_FLAG_SIMPLE_READ]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_SIMPLE_READ]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_SIMPLE_READ, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof("d205303e099ceff44835")-1, (uint8_t *)"d205303e099ceff44835"}},
+
+    /* FLAG MD5 Characteristic Declaration */
+    [IDX_CHAR_FLAG_MD5]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_MD5]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MD5, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof("MD5 of Device Name")-1, (uint8_t *)"MD5 of Device Name"}},
+
+
+
+
     /* Characteristic Declaration */
     [IDX_CHAR_A]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -224,16 +248,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_CFG_A]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(heart_measurement_ccc), (uint8_t *)heart_measurement_ccc}},
-
-    /* Characteristic Declaration */
-    [IDX_CHAR_B]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
-    /* Characteristic Value */
-    [IDX_CHAR_VAL_B]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_B, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
 
     /* Characteristic Declaration */
     [IDX_CHAR_C]      =
@@ -459,10 +473,15 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //attributes device name
                         flag_state[0] = 'T';
                     }
-                    if (strcmp(writeData,"0096ff9a0051c6f82607") == 0){
-                        //md5 of device name
+                    if (strcmp(writeData,"d205303e099ceff44835") == 0){
+                        //simple read
                         flag_state[1] = 'T';
                     }
+                    if (strcmp(writeData,"0096ff9a0051c6f82607") == 0){
+                        //md5 of device name
+                        flag_state[2] = 'T';
+                    }
+
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
                     set_score();
                 }
