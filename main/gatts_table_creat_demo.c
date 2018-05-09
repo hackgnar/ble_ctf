@@ -160,12 +160,14 @@ static const uint16_t GATTS_CHAR_UUID_SCORE                     = 0xFF01;
 static const uint16_t GATTS_CHAR_UUID_FLAG                      = 0xFF02;
 static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_READ          = 0xFF03;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MD5                  = 0xFF04;
-static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE         = 0xFF05;
-static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2_READ   = 0xFF06;
-static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2        = 0xFF07;
-static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF08;
-static const uint16_t GATTS_CHAR_UUID_TEST_A                    = 0xFF09;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0a;
+static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_ANYTHING       = 0xFF05;
+static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_ASCII          = 0xFF06;
+static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_HEX            = 0xFF07;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2_READ   = 0xFF08;
+static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2        = 0xFF09;
+static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF0a;
+static const uint16_t GATTS_CHAR_UUID_TEST_A                    = 0xFF0b;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0c;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -181,8 +183,10 @@ static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
 static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
-static const uint8_t simple_write_flag[16] = {'W','r','i','t','e',' ','0','x','0','7',' ','t','o',' ','m','e'};
-static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','4'};
+static const char write_any_flag[] = "Write anything here";
+static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
+static const char write_hex_flag[] = "Write the hex value 0x07 here";
+static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
 static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
 static const uint8_t flag_read_value[16] = {'W','r','i','t','e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
@@ -239,15 +243,35 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MD5, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof("MD5 of Device Name")-1, (uint8_t *)"MD5 of Device Name"}},
 
-    /* FLAG simple write Characteristic Declaration */
-    [IDX_CHAR_FLAG_SIMPLE_WRITE]      =
+    /* FLAG WRITE ANYTHING Characteristic Declaration */
+    [IDX_CHAR_FLAG_WRITE_ANYTHING]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_FLAG_SIMPLE_WRITE]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(simple_write_flag), (uint8_t *)simple_write_flag}},
+    [IDX_CHAR_VAL_FLAG_WRITE_ANYTHING]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_ANYTHING, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_any_flag)-1, (uint8_t *)write_any_flag}},
+
+    /* FLAG WRITE ASCII Characteristic Declaration */
+    [IDX_CHAR_FLAG_WRITE_ASCII]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_WRITE_ASCII]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_ASCII, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_ascii_flag)-1, (uint8_t *)write_ascii_flag}},
+
+    /* FLAG simple write Characteristic Declaration */
+    [IDX_CHAR_FLAG_WRITE_HEX]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_WRITE_HEX]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_HEX, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_hex_flag)-1, (uint8_t *)write_hex_flag}},
 
     /* FLAG brute write Characteristic Declaration */
     [IDX_CHAR_FLAG_BRUTE_WRITE]      =
@@ -515,16 +539,34 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 memset(writeData, 0, sizeof writeData);
                 memcpy(writeData, param->write.value, 20); 
 
-                // simple write
-                if (blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE]+1 == param->write.handle)
+                // any write
+                if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_ANYTHING]+1 == param->write.handle)
                 {
-                    uint16_t descr_value = param->write.value[1]<<8 |param->write.value[0];
-                    if (descr_value == 0x0007){
-                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE]+1, 20, (uint8_t *)"1179080b29f8da16ad66");
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_WRITE_ANYTHING]+1, 20, (uint8_t *)"3873c0270763568cf7aa");
+                }
+
+                // hex ascii
+                if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_ASCII]+1 == param->write.handle)
+                {
+                    if (strcmp(writeData,"yo") == 0){
+                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_WRITE_ASCII]+1, 20, (uint8_t *)"c55c6314b3db0a6128af");
                     }
                     else
                     {
-                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE]+1, sizeof simple_write_flag, simple_write_flag);
+                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_WRITE_ASCII]+1, sizeof(write_hex_flag)-1, (uint8_t *)write_ascii_flag);
+                    }
+                }
+
+                // hex write
+                if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_HEX]+1 == param->write.handle)
+                {
+                    uint16_t descr_value = param->write.value[1]<<8 |param->write.value[0];
+                    if (descr_value == 0x0007){
+                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_WRITE_HEX]+1, 20, (uint8_t *)"1179080b29f8da16ad66");
+                    }
+                    else
+                    {
+                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_WRITE_HEX]+1, sizeof(write_hex_flag)-1, (uint8_t *)write_hex_flag);
                     }
                 }
                 // brute write
@@ -581,17 +623,25 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //md5 of device name
                         flag_state[3] = 'T';
                     }
-                    if (strcmp(writeData,"1179080b29f8da16ad66") == 0){
-                        //simple write
+                    if (strcmp(writeData,"3873c0270763568cf7aa") == 0){
+                        //write any
                         flag_state[4] = 'T';
+                    }
+                    if (strcmp(writeData,"c55c6314b3db0a6128af") == 0){
+                        //write ascii
+                        flag_state[5] = 'T';
+                    }
+                    if (strcmp(writeData,"1179080b29f8da16ad66") == 0){
+                        //write hex
+                        flag_state[6] = 'T';
                     }
                     if (strcmp(writeData,"f8b136d937fad6a2be9f") == 0){
                         //read & write
-                        flag_state[5] = 'T';
+                        flag_state[7] = 'T';
                     }
                     if (strcmp(writeData,"933c1fcfa8ed52d2ec05") == 0){
                         //brute write
-                        flag_state[6] = 'T';
+                        flag_state[8] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
