@@ -42,9 +42,9 @@ Submit using bleah:
 | Flag | Description | Hint |
 | ------- | ----------------------------- | ------- |
 | Flag 1 | This flag is a gift and can only be obtained from reading the hint! | [Read Me!](docs/hints/flag1.md) |
-| Flag 2 | Learn about discoverable device attributes | [More](docs/hints/flag2.md) |
-| Flag 3 | Learn how to read handles | [More](docs/hints/flag3.md) |
-| Flag 4 | Read handle puzzle fun | [More](docs/hints/flag4.md) |
+| Flag 2 | Learn how to read handles | [More](docs/hints/flag2.md) |
+| Flag 3 | Read handle puzzle fun | [More](docs/hints/flag3.md) |
+| Flag 4 | Learn about discoverable device attributes | [More](docs/hints/flag4.md) |
 | Flag 5 | Learn about reading and writing to handles | [More](docs/hints/flag5.md) |
 | Flag 6 | More reading and writing to handles | [More](docs/hints/flag6.md) |
 | Flag 7 | Learn about write fuzzing | [More](docs/hints/flag7.md) |
