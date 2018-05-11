@@ -1,3 +1,3 @@
 ## Flag 7 Hint
 
-Take a look at handle 0x0038 and do what it says.  You should script up a solution for this one.  Also keep in mind that some tools write faster than others.
+Follow the instructions found from reading handle 0x0036.  Keep in mind that some tools only write hex values while other provide methods for writing either hex or ascii 
