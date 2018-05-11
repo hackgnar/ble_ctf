@@ -46,10 +46,10 @@ Submit using bleah:
 | Flag 3 | Read handle puzzle fun | [More](docs/hints/flag3.md) |
 | Flag 4 | Learn about discoverable device attributes | [More](docs/hints/flag4.md) |
 | Flag 5 | Learn about reading and writing to handles | [More](docs/hints/flag5.md) |
-| Flag 6 | More reading and writing to handles | [More](docs/hints/flag6.md) |
-| Flag 7 | Learn about write fuzzing | [More](docs/hints/flag7.md) |
-| Flag 8 | Learn about BT client device attributes | [More](docs/hints/flag8.md) |
-| Flag 9 | Learn about notifications | [More](docs/hints/flag9.md) |
+| Flag 6 | Learn about reading and writing ascii to handles | [More](docs/hints/flag6.md) |
+| Flag 7 | Learn about reading and writing hex to handles | [More](docs/hints/flag7.md) |
+| Flag 8 | Learn about write fuzzing | [More](docs/hints/flag8.md) |
+| Flag 9 | Learn about BT client device attributes | [More](docs/hints/flag9.md) |
 | Flag 10 | Learn about BT broadcast messages | [More](docs/hints/flag10.md) |
 | Flag 11 | Learn about responses | [More](docs/hints/flag11.md) |
 | Flag 12 | Learn about connection security attributes | [More](docs/hints/flag12.md) |
@@ -60,5 +60,5 @@ Submit using bleah:
 | Flag 17 | Harderer handle puzzle fun | [More](docs/hints/flag17.md) |
 | Flag 18 | Abuse me | [More](docs/hints/flag18.md) |
 | Flag 19 | Exhaust me | [More](docs/hints/flag19.md) |
-| Flag 20 | Not gonna tell! | [More](docs/hints/flag20.md) |
+| Flag 20 | Learn about notifications | [More](docs/hints/flag20.md) |
 
