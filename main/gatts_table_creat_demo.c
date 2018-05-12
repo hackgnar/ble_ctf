@@ -169,7 +169,8 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF0a;
 static const uint16_t GATTS_CHAR_UUID_FLAG_READ_ALOT            = 0xFF0b;
 static const uint16_t GATTS_CHAR_UUID_FLAG_NOTIFICATION         = 0xFF0c;
 static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE             = 0xFF0d;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0e;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF0e;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0f;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -190,6 +191,7 @@ static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
 static const char read_alot_value[] = "Read me 1000 times";
+static const char read_mac_value[] = "Connect with BT MAC address 11:22:33:44:55:66";
 static const char notification_read_value[] = "Listen to me for notifications";
 static const char indicate_read_value[] = "indications";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
@@ -349,6 +351,16 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_CFG_FLAG_INDICATE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(indicate_read_value), (uint8_t *)indicate_read_value}},
+
+/* FLAG MAC Characteristic Declaration */
+    [IDX_CHAR_FLAG_MAC]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_MAC]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MAC, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_mac_value)-1, (uint8_t *)read_mac_value}},
 
 
 
@@ -713,6 +725,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //indicate
                         flag_state[11] = 'T';
                     }
+                    if (strcmp(writeData,"aca16920583e42bdcf5f") == 0){
+                        //mac
+                        flag_state[12] = 'T';
+                    }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
                     set_score();
@@ -742,6 +758,18 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         case ESP_GATTS_CONNECT_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONNECT_EVT, conn_id = %d", param->connect.conn_id);
             esp_log_buffer_hex(GATTS_TABLE_TAG, param->connect.remote_bda, 6);
+            uint8_t match_mac[8] = {0x11,0x22,0x33,0x44,0x55,0x66};
+            if (match_mac[0] == param->connect.remote_bda[0] &&
+                match_mac[1] == param->connect.remote_bda[1] &&
+                match_mac[2] == param->connect.remote_bda[2] &&
+                match_mac[3] == param->connect.remote_bda[3] &&
+                match_mac[4] == param->connect.remote_bda[4] &&
+                match_mac[5] == param->connect.remote_bda[5]){
+                ESP_LOGI(GATTS_TABLE_TAG, "THIS IS THE MAC YOU ARE LOOKING FOR");
+                esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_MAC]+1, 20, (uint8_t *)"aca16920583e42bdcf5f");
+            }
+
+
             esp_ble_conn_update_params_t conn_params = {0};
             memcpy(conn_params.bda, param->connect.remote_bda, sizeof(esp_bd_addr_t));
             /* For the IOS system, please reference the apple official documents about the ble connection parameters restrictions. */
