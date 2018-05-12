@@ -170,7 +170,8 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_READ_ALOT            = 0xFF0b;
 static const uint16_t GATTS_CHAR_UUID_FLAG_NOTIFICATION         = 0xFF0c;
 static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE             = 0xFF0d;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF0e;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0f;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF0f;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF10;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -192,6 +193,7 @@ static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
 static const char read_alot_value[] = "Read me 1000 times";
 static const char read_mac_value[] = "Connect with BT MAC address 11:22:33:44:55:66";
+static const char read_mtu_value[] = "Set your connection MTU to 444";
 static const char notification_read_value[] = "Listen to me for notifications";
 static const char indicate_read_value[] = "indications";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
@@ -352,7 +354,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(indicate_read_value), (uint8_t *)indicate_read_value}},
 
-/* FLAG MAC Characteristic Declaration */
+    /* FLAG MAC Characteristic Declaration */
     [IDX_CHAR_FLAG_MAC]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
@@ -362,10 +364,15 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MAC, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_mac_value)-1, (uint8_t *)read_mac_value}},
 
+    /* FLAG MTU Characteristic Declaration */
+    [IDX_CHAR_FLAG_MTU]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
-
-
-
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_MTU]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MTU, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_mtu_value)-1, (uint8_t *)read_mtu_value}},
 
 
 
@@ -729,6 +736,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //mac
                         flag_state[12] = 'T';
                     }
+                    if (strcmp(writeData,"b1e409e5a4eaf9fe5158") == 0){
+                        //mtu
+                        flag_state[13] = 'T';
+                    }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
                     set_score();
@@ -748,6 +759,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             break;
         case ESP_GATTS_MTU_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_MTU_EVT, MTU %d", param->mtu.mtu);
+            if (param->mtu.mtu == 444) {
+                esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_MTU]+1, 20, (uint8_t *)"b1e409e5a4eaf9fe5158");
+            }
             break;
         case ESP_GATTS_CONF_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONF_EVT, status = %d", param->conf.status);

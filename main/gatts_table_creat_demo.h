@@ -61,6 +61,9 @@ enum
     IDX_CHAR_FLAG_MAC,
     IDX_CHAR_VAL_FLAG_MAC,
 
+    IDX_CHAR_FLAG_MTU,
+    IDX_CHAR_VAL_FLAG_MTU,
+    
     IDX_CHAR_C,
     IDX_CHAR_VAL_C,
 
