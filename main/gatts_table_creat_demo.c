@@ -186,7 +186,7 @@ static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 // start ctf data vars
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
-static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
+static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','1','4'};
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";

@@ -54,10 +54,12 @@ Submit using bleah:
 | Flag 11 | Learn about notifications | [More](docs/hints/flag11.md) |
 | Flag 12 | Learn about indicate | [More](docs/hints/flag12.md) |
 | Flag 13 | Learn about BT client device attributes | [More](docs/hints/flag13.md) |
-| Flag 14 | Learn about advertisements | [More](docs/hints/flag14.md) |
-| Flag 15 | Learn about message sizes MTU | [More](docs/hints/flag15.md) |
+<!---
+| Flag 14 | Learn about message sizes MTU | [More](docs/hints/flag14.md) |
+| Flag 15 | Learn about advertisements | [More](docs/hints/flag15.md) |
 | Flag 16 | Harder handle puzzle fun | [More](docs/hints/flag16.md) |
 | Flag 17 | Harderer handle puzzle fun | [More](docs/hints/flag17.md) |
 | Flag 18 | Learn about connection security attributes | [More](docs/hints/flag18.md) |
 | Flag 19 | Learn about BT broadcast messages | [More](docs/hints/flag19.md) |
 | Flag 20 | Learn about notifications | [More](docs/hints/flag20.md) |
+--->
