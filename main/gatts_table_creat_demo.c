@@ -168,10 +168,11 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2        = 0xFF09;
 static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF0a;
 static const uint16_t GATTS_CHAR_UUID_FLAG_READ_ALOT            = 0xFF0b;
 static const uint16_t GATTS_CHAR_UUID_FLAG_NOTIFICATION         = 0xFF0c;
-static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE             = 0xFF0d;
-static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF0e;
-static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF0f;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF10;
+static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_READ        = 0xFF0d;
+static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE             = 0xFF0e;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF0f;
+static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF10;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF11;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -179,7 +180,7 @@ static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
-static const uint8_t char_prop_read_write_indicate   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
+static const uint8_t char_prop_read_write_indicate   = ESP_GATT_CHAR_PROP_BIT_WRITE |ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
 static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
@@ -195,7 +196,7 @@ static const char read_alot_value[] = "Read me 1000 times";
 static const char read_mac_value[] = "Connect with BT MAC address 11:22:33:44:55:66";
 static const char read_mtu_value[] = "Set your connection MTU to 444";
 static const char notification_read_value[] = "Listen to me for notifications";
-static const char indicate_read_value[] = "indications";
+static const char indicate_read_value[] = "Listen to handle 0x0044 me for indications";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
 static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
@@ -339,6 +340,17 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(notification_read_value)-1, (uint8_t *)notification_read_value}},
 
+    /* FLAG indicate read Characteristic Declaration */
+    [IDX_CHAR_FLAG_INDICATE_READ]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_INDICATE_READ]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_INDICATE_READ, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(indicate_read_value)-1, (uint8_t *)indicate_read_value}},
+
+    
     /* indicate flag Characteristic Declaration */
     [IDX_CHAR_FLAG_INDICATE]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -352,7 +364,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Client Characteristic Configuration Descriptor */
     [IDX_CHAR_CFG_FLAG_INDICATE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(uint16_t), sizeof(indicate_read_value), (uint8_t *)indicate_read_value}},
+      sizeof(uint16_t), sizeof(indicate_read_value)-1, (uint8_t *)indicate_read_value}},
 
     /* FLAG MAC Characteristic Declaration */
     [IDX_CHAR_FLAG_MAC]      =
