@@ -147,7 +147,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
 					esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 
 /* One gatt-based profile one app_id and one gatts_if, this array will store the gatts_if returned by ESP_GATTS_REG_EVT */
-static struct gatts_profile_inst heart_rate_profile_tab[PROFILE_NUM] = {
+static struct gatts_profile_inst blectf_profile_tab[PROFILE_NUM] = {
     [PROFILE_APP_IDX] = {
         .gatts_cb = gatts_profile_event_handler,
         .gatts_if = ESP_GATT_IF_NONE,       /* Not get the gatt_if, so initial is ESP_GATT_IF_NONE */
@@ -167,8 +167,9 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2_READ   = 0xFF08;
 static const uint16_t GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2        = 0xFF09;
 static const uint16_t GATTS_CHAR_UUID_FLAG_BRUTE_WRITE          = 0xFF0a;
 static const uint16_t GATTS_CHAR_UUID_FLAG_READ_ALOT            = 0xFF0b;
-static const uint16_t GATTS_CHAR_UUID_TEST_A                    = 0xFF0c;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0d;
+static const uint16_t GATTS_CHAR_UUID_FLAG_NOTIFICATION         = 0xFF0c;
+static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE             = 0xFF0d;
+static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF0e;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -176,6 +177,7 @@ static const uint16_t character_client_config_uuid = ESP_GATT_UUID_CHAR_CLIENT_C
 static const uint8_t char_prop_read                =  ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRITE;
 static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
+static const uint8_t char_prop_read_write_indicate   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
 static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
@@ -188,6 +190,8 @@ static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
 static const char read_alot_value[] = "Read me 1000 times";
+static const char notification_read_value[] = "Listen to me for notifications";
+static const char indicate_read_value[] = "indications";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
 static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
@@ -304,7 +308,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_FLAG_SIMPLE_WRITE2]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_SIMPLE_WRITE2, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_write2_value), (uint8_t *)read_write2_value}},
 
     /* FLAG read alot Characteristic Declaration */
     [IDX_CHAR_FLAG_READ_ALOT]      =
@@ -316,27 +320,43 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_READ_ALOT, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_alot_value)-1, (uint8_t *)read_alot_value}},
 
-
-
-
-
-
-
-
-    /* Characteristic Declaration */
-    [IDX_CHAR_A]     =
+    /* Notification flag Characteristic Declaration */
+    [IDX_CHAR_FLAG_NOTIFICATION]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write_notify}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_A] =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_A, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+    [IDX_CHAR_VAL_FLAG_NOTIFICATION] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_NOTIFICATION, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(notification_read_value), (uint8_t *)notification_read_value}},
 
     /* Client Characteristic Configuration Descriptor */
-    [IDX_CHAR_CFG_A]  =
+    [IDX_CHAR_CFG_FLAG_NOTIFICATION]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      sizeof(uint16_t), sizeof(heart_measurement_ccc), (uint8_t *)heart_measurement_ccc}},
+      sizeof(uint16_t), sizeof(notification_read_value)-1, (uint8_t *)notification_read_value}},
+
+    /* indicate flag Characteristic Declaration */
+    [IDX_CHAR_FLAG_INDICATE]     =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write_indicate}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_INDICATE] =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_INDICATE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(indicate_read_value), (uint8_t *)indicate_read_value}},
+
+    /* Client Characteristic Configuration Descriptor */
+    [IDX_CHAR_CFG_FLAG_INDICATE]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      sizeof(uint16_t), sizeof(indicate_read_value), (uint8_t *)indicate_read_value}},
+
+
+
+
+
+
+
+
 
     /* Characteristic Declaration */
     [IDX_CHAR_C]      =
@@ -614,6 +634,29 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE2_READ]+1, sizeof read_write2_value, read_write2_value);
                     }
                 }
+                // notify flag
+                if (blectf_handle_table[IDX_CHAR_FLAG_NOTIFICATION]+1 == param->write.handle)
+                {
+                    
+                    char notify_data[20] = "5ec3772bcd00cf06d8eb";
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION], sizeof(notify_data), (uint8_t *)notify_data, false);
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_NOTIFICATION]+1, sizeof notification_read_value, (uint8_t *)notification_read_value);
+                    ESP_LOGI(GATTS_TABLE_TAG, "NOTIFY DONE");
+                }
+
+                // indicate flag
+                if (blectf_handle_table[IDX_CHAR_FLAG_INDICATE]+1 == param->write.handle)
+                {
+                    
+                    char indicate_data1[20] = "make sure to ACK";
+                    char indicate_data2[20] = "c7b86dd121848c77c113";
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data1), (uint8_t *)indicate_data1, true);
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data2), (uint8_t *)indicate_data2, true);
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_INDICATE]+1, sizeof indicate_read_value, (uint8_t *)indicate_read_value);
+                    ESP_LOGI(GATTS_TABLE_TAG, "INDICATE DONE");
+                }
+
+
 
                 //handle flags
                 if (blectf_handle_table[IDX_CHAR_FLAG]+1 == param->write.handle)
@@ -661,6 +704,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     if (strcmp(writeData,"6ffcd214ffebdc0d069e") == 0){
                         //brute write
                         flag_state[9] = 'T';
+                    }
+                    if (strcmp(writeData,"6ffcd214ffebdc0d069e") == 0){
+                        //notify
+                        flag_state[10] = 'T';
+                    }
+                    if (strcmp(writeData,"6ffcd214ffebdc0d069e") == 0){
+                        //indicate
+                        flag_state[11] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
@@ -740,7 +791,7 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
     /* If event is register event, store the gatts_if for each profile */
     if (event == ESP_GATTS_REG_EVT) {
         if (param->reg.status == ESP_GATT_OK) {
-            heart_rate_profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
+            blectf_profile_tab[PROFILE_APP_IDX].gatts_if = gatts_if;
         } else {
             ESP_LOGE(GATTS_TABLE_TAG, "reg app failed, app_id %04x, status %d",
                     param->reg.app_id,
@@ -752,9 +803,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
         int idx;
         for (idx = 0; idx < PROFILE_NUM; idx++) {
             /* ESP_GATT_IF_NONE, not specify a certain gatt_if, need to call every profile cb function */
-            if (gatts_if == ESP_GATT_IF_NONE || gatts_if == heart_rate_profile_tab[idx].gatts_if) {
-                if (heart_rate_profile_tab[idx].gatts_cb) {
-                    heart_rate_profile_tab[idx].gatts_cb(event, gatts_if, param);
+            if (gatts_if == ESP_GATT_IF_NONE || gatts_if == blectf_profile_tab[idx].gatts_if) {
+                if (blectf_profile_tab[idx].gatts_cb) {
+                    blectf_profile_tab[idx].gatts_cb(event, gatts_if, param);
                 }
             }
         }
