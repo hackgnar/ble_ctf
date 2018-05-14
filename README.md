@@ -57,13 +57,12 @@ Submit using bleah:
 | Flag 14 | Learn about multi response indicate | [More](docs/hints/flag14.md) |
 | Flag 15 | Learn about BT client device attributes | [More](docs/hints/flag15.md) |
 | Flag 16 | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
+| Flag 17 | Learn about write responses | [More](docs/hints/flag17.md) |
 <!---
+| Flag 15 | Learn about write responses | [More](docs/hints/flag15.md) |
 | Flag 15 | Learn about advertisements | [More](docs/hints/flag15.md) |
-| Flag 16 | Harder handle puzzle fun | [More](docs/hints/flag16.md) |
-| Flag 17 | Harderer handle puzzle fun | [More](docs/hints/flag17.md) |
 | Flag 18 | Learn about connection security attributes | [More](docs/hints/flag18.md) |
 | Flag 19 | Learn about BT broadcast messages | [More](docs/hints/flag19.md) |
-| Flag 20 | Learn about notifications | [More](docs/hints/flag20.md) |
 --->
 
 Flags are currently being released on a very frequent basis (1-5 per week).  We have many more flag ideas!  More flags comming soon!  Stay tuned!
