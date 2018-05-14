@@ -51,10 +51,12 @@ Submit using bleah:
 | Flag 8 | Learn about reading and writing to handles differently | [More](docs/hints/flag8.md) |
 | Flag 9 | Learn about write fuzzing | [More](docs/hints/flag9.md) |
 | Flag 10 | Learn about read and write speeds | [More](docs/hints/flag10.md) |
-| Flag 11 | Learn about notifications | [More](docs/hints/flag11.md) |
-| Flag 12 | Learn about indicate | [More](docs/hints/flag12.md) |
-| Flag 13 | Learn about BT client device attributes | [More](docs/hints/flag13.md) |
-| Flag 14 | Learn about message sizes MTU | [More](docs/hints/flag14.md) |
+| Flag 11 | Learn about single response notifications | [More](docs/hints/flag11.md) |
+| Flag 12 | Learn about single response indicate | [More](docs/hints/flag12.md) |
+| Flag 13 | Learn about multi response notifications | [More](docs/hints/flag13.md) |
+| Flag 14 | Learn about multi response indicate | [More](docs/hints/flag14.md) |
+| Flag 15 | Learn about BT client device attributes | [More](docs/hints/flag15.md) |
+| Flag 16 | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
 <!---
 | Flag 15 | Learn about advertisements | [More](docs/hints/flag15.md) |
 | Flag 16 | Harder handle puzzle fun | [More](docs/hints/flag16.md) |

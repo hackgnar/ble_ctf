@@ -665,26 +665,19 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE2_READ]+1, sizeof read_write2_value, read_write2_value);
                     }
                 }
-                // notify flag
+                // notify single response flag
                 if (blectf_handle_table[IDX_CHAR_FLAG_NOTIFICATION]+1 == param->write.handle)
                 {
-                    
                     char notify_data[20] = "5ec3772bcd00cf06d8eb";
-                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION], sizeof(notify_data), (uint8_t *)notify_data, false);
                     esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_NOTIFICATION]+1, sizeof notification_read_value, (uint8_t *)notification_read_value);
-                    ESP_LOGI(GATTS_TABLE_TAG, "NOTIFY DONE");
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION], sizeof(notify_data), (uint8_t *)notify_data, false);
                 }
 
-                // indicate flag
+                // indicate single response flag flag
                 if (blectf_handle_table[IDX_CHAR_FLAG_INDICATE]+1 == param->write.handle)
                 {
-                    
-                    char indicate_data1[20] = "make sure to ACK";
-                    char indicate_data2[20] = "c7b86dd121848c77c113";
-                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data1), (uint8_t *)indicate_data1, true);
-                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data2), (uint8_t *)indicate_data2, true);
-                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_INDICATE]+1, sizeof indicate_read_value, (uint8_t *)indicate_read_value);
-                    ESP_LOGI(GATTS_TABLE_TAG, "INDICATE DONE");
+                    char indicate_data[20] = "c7b86dd121848c77c113";
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data), (uint8_t *)indicate_data, true);
                 }
 
 
@@ -776,7 +769,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             }
             break;
         case ESP_GATTS_CONF_EVT:
-            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONF_EVT, status = %d", param->conf.status);
+            //hold state and send the notification and indicate events
+            //ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONF_EVT, status = %d", param->conf.status);
+            //char indicate_data2[20] = "c7b86dd121848c77c113";
+            //esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE], sizeof(indicate_data2), (uint8_t *)indicate_data2, true);
             break;
         case ESP_GATTS_START_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "SERVICE_START_EVT, status %d, service_handle %d", param->start.status, param->start.service_handle);
@@ -829,10 +825,23 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         case ESP_GATTS_OPEN_EVT:
         case ESP_GATTS_CANCEL_OPEN_EVT:
         case ESP_GATTS_CLOSE_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CLOSE_EVT");
+            break;
         case ESP_GATTS_LISTEN_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_LISTEN_EVT");
+            break;
         case ESP_GATTS_CONGEST_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONGEST_EVT");
+            break;
         case ESP_GATTS_UNREG_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_UNREG_EVT");
+            break;
         case ESP_GATTS_DELETE_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_DELETE_EVT");
+            break;
+        case ESP_GATTS_RESPONSE_EVT:
+            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_RESPONSE_EVT");
+            break;
         default:
             break;
     }
