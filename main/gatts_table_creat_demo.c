@@ -175,7 +175,7 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI_READ  = 0xFF10;
 static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI       = 0xFF11;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF12;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF13;
-static const uint16_t GATTS_CHAR_UUID_TEST_C                    = 0xFF14;
+static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -202,6 +202,7 @@ static const char notification_read_value[] = "Listen to me for a single notific
 static const char indicate_read_value[] = "Listen to handle 0x0044 for a single indication";
 static const char notification_multi_read_value[] = "Listen to me for multi notifications";
 static const char indicate_multi_read_value[] = "Listen to handle 0x004a for multi indications";
+static const char write_response_value[] = "Write some data to me and watch my response";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
 static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
@@ -212,6 +213,7 @@ int score = 0;
 static char string_score[10] = "0";
 int BLINK_GPIO=2;
 int indicate_handle_state = 0;
+int send_response=0;
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -372,7 +374,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(indicate_read_value)-1, (uint8_t *)indicate_read_value}},
 
-// notify & indicate multi response
     /* Notification flag Characteristic Declaration */
     [IDX_CHAR_FLAG_NOTIFICATION_MULTI]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -413,7 +414,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       sizeof(uint16_t), sizeof(indicate_multi_read_value)-1, (uint8_t *)indicate_multi_read_value}},
 
-// end notify & indicate multi response
     /* FLAG MAC Characteristic Declaration */
     [IDX_CHAR_FLAG_MAC]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -434,18 +434,17 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_MTU, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(read_mtu_value)-1, (uint8_t *)read_mtu_value}},
 
-
-
-
-    /* Characteristic Declaration */
-    [IDX_CHAR_C]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_write}},
+    /* FLAG write response Characteristic Declaration */
+    [IDX_CHAR_FLAG_WRITE_RESPONSE]      =
+    {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+    //{{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
 
     /* Characteristic Value */
-    [IDX_CHAR_VAL_C]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_TEST_C, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(char_value), (uint8_t *)char_value}},
+    [IDX_CHAR_VAL_FLAG_WRITE_RESPONSE]  =
+    {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    //{{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_response_value)-1, (uint8_t *)write_response_value}},
 
 };
 
@@ -640,6 +639,16 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (read_counter > 1000){
                 esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_READ_ALOT]+1, 20, (uint8_t *)"6ffcd214ffebdc0d069e");
             }
+            if (param->read.handle == blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1){
+                // add an ascii value write check to this one
+                esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
+                char write_response_data[] = "Write+response 'hello' to me";
+                rsp->attr_value.len = sizeof(write_response_data);
+                rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
+
+                esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, rsp);
+            }
 
        	    break;
         case ESP_GATTS_WRITE_EVT:
@@ -744,6 +753,19 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     char indicate_data[20] = "U no want this msg";
                     esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_INDICATE_MULTI], sizeof(indicate_data), (uint8_t *)indicate_data, true);
                 }
+                // write response
+                //"d41d8cd98f00b204e980"
+                if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1 == param->write.handle)
+                {
+                    send_response=1;
+                    esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
+                    char write_response_data[20] = "d41d8cd98f00b204e980";
+                    rsp->attr_value.len = 20;
+                    rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                    memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
+
+                    esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, rsp);
+                }
 
                 //handle flags
                 if (blectf_handle_table[IDX_CHAR_FLAG]+1 == param->write.handle)
@@ -816,17 +838,24 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //mtu
                         flag_state[15] = 'T';
                     }
+                    if (strcmp(writeData,"d41d8cd98f00b204e980") == 0){
+                        //write response
+                        flag_state[16] = 'T';
+                    }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
                     set_score();
                 }
                 /* send response when param->write.need_rsp is true*/
                 if (param->write.need_rsp){
-                    esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
+                    ESP_LOGI(GATTS_TABLE_TAG, "CATCH ALL SEND RESPONSE TRIGGERED");
+                    //esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
                 }
-            }else{
+            }
+            else{
                 /* handle prepare write */
-                example_prepare_write_event_env(gatts_if, &prepare_write_env, param);
+                ESP_LOGI(GATTS_TABLE_TAG, "PREPARE WRITE TRIGGERED");
+                //example_prepare_write_event_env(gatts_if, &prepare_write_env, param);
             }
       	    break;
         case ESP_GATTS_EXEC_WRITE_EVT:
@@ -920,6 +949,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             break;
         case ESP_GATTS_RESPONSE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_RESPONSE_EVT");
+            if (send_response){
+                send_response=0;
+                char write_response_data[20] = "d41d8cd98f00b204e980";
+                esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION], sizeof(write_response_data), (uint8_t *)write_response_data, false);
+            }
             break;
         default:
             break;
