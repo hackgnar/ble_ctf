@@ -642,7 +642,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (param->read.handle == blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1){
                 // add an ascii value write check to this one
                 esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
-                char write_response_data[] = "Write+response 'hello' to me";
+                char write_response_data[20] = "Write+resp 'hello'  ";
                 rsp->attr_value.len = sizeof(write_response_data);
                 rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
                 memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
@@ -757,14 +757,17 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 //"d41d8cd98f00b204e980"
                 if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1 == param->write.handle)
                 {
-                    send_response=1;
-                    esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
-                    char write_response_data[20] = "d41d8cd98f00b204e980";
-                    rsp->attr_value.len = 20;
-                    rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-                    memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
-
-                    esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, rsp);
+                    ESP_LOGI(GATTS_TABLE_TAG, "trying hello");
+                    if (strcmp(writeData,"hello") == 0){
+                        ESP_LOGI(GATTS_TABLE_TAG, "hello sent");
+                        send_response=1;
+                        esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
+                        char write_response_data[20] = "d41d8cd98f00b204e980";
+                        rsp->attr_value.len = 20;
+                        rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                        memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
+                        esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, rsp);
+                    }
                 }
 
                 //handle flags
@@ -847,15 +850,15 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     set_score();
                 }
                 /* send response when param->write.need_rsp is true*/
-                if (param->write.need_rsp){
+                if (param->write.need_rsp && send_response == 0){
                     ESP_LOGI(GATTS_TABLE_TAG, "CATCH ALL SEND RESPONSE TRIGGERED");
-                    //esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
+                    esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
                 }
             }
             else{
                 /* handle prepare write */
                 ESP_LOGI(GATTS_TABLE_TAG, "PREPARE WRITE TRIGGERED");
-                //example_prepare_write_event_env(gatts_if, &prepare_write_env, param);
+                example_prepare_write_event_env(gatts_if, &prepare_write_env, param);
             }
       	    break;
         case ESP_GATTS_EXEC_WRITE_EVT:
