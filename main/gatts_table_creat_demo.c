@@ -203,9 +203,10 @@ static const char indicate_read_value[] = "Listen to handle 0x0044 for a single 
 static const char notification_multi_read_value[] = "Listen to me for multi notifications";
 static const char indicate_multi_read_value[] = "Listen to handle 0x004a for multi indications";
 static const char write_response_value[] = "Write some data to me and watch my response";
+static const char brute_write_flag[] = "Brute force my value 00 to ff";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
-static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
+//static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
 static const uint8_t flag_read_value[16] = {'W','r','i','t','e', ' ', 'F', 'l','a','g','s', ' ', 'H','e','r', 'e'};
 int read_alot_counter = 0;
 int read_counter = 0;
@@ -301,7 +302,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     /* Characteristic Value */
     [IDX_CHAR_VAL_FLAG_BRUTE_WRITE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_BRUTE_WRITE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(brute_write_flag), (uint8_t *)brute_write_flag}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(brute_write_flag)-1, (uint8_t *)brute_write_flag}},
 
     /* FLAG read write Characteristic Declaration */
     [IDX_CHAR_FLAG_SIMPLE_WRITE2_READ]      =
@@ -696,25 +697,25 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 if (blectf_handle_table[IDX_CHAR_FLAG_BRUTE_WRITE]+1 == param->write.handle)
                 {
                     uint16_t descr_value = param->write.value[1]<<8 |param->write.value[0];
-                    if (descr_value == 0x00D1 || flag_state[5] == 'T' || flag_state[5] == 'H'){
+                    if (descr_value == 0x00D1 || flag_state[8] == 'T' || flag_state[8] == 'H'){
                         esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_BRUTE_WRITE]+1, 20, (uint8_t *)"933c1fcfa8ed52d2ec05");
-                        if (flag_state[5] != 'T'){
-                            flag_state[5] = 'H';
+                        if (flag_state[8] != 'T'){
+                            flag_state[8] = 'H';
                         }
                     }
                     else
                     {
-                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_BRUTE_WRITE]+1, sizeof brute_write_flag, brute_write_flag);
+                        esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_BRUTE_WRITE]+1, sizeof(brute_write_flag)-1, (uint8_t *)brute_write_flag);
                     }
                 }
                 // read write
                 if (blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE2]+1 == param->write.handle)
                 {
                     uint16_t descr_value = param->write.value[1]<<8 |param->write.value[0];
-                    if (descr_value == 0x00C9 || flag_state[5] == 'T' || flag_state[5] == 'H'){
+                    if (descr_value == 0x00C9 || flag_state[7] == 'T' || flag_state[7] == 'H'){
                         esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_SIMPLE_WRITE2_READ]+1, 20, (uint8_t *)"f8b136d937fad6a2be9f");
-                        if (flag_state[5] != 'T'){
-                            flag_state[5] = 'H';
+                        if (flag_state[7] != 'T'){
+                            flag_state[7] = 'H';
                         }
                     }
                     else
@@ -817,11 +818,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //brute write
                         flag_state[9] = 'T';
                     }
-                    if (strcmp(writeData,"6ffcd214ffebdc0d069e") == 0){
+                    if (strcmp(writeData,"5ec3772bcd00cf06d8eb") == 0){
                         //notify
                         flag_state[10] = 'T';
                     }
-                    if (strcmp(writeData,"6ffcd214ffebdc0d069e") == 0){
+                    if (strcmp(writeData,"c7b86dd121848c77c113") == 0){
                         //indicate
                         flag_state[11] = 'T';
                     }
