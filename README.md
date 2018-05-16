@@ -58,8 +58,8 @@ Submit using bleah:
 | Flag 15 | Learn about BT client device attributes | [More](docs/hints/flag15.md) |
 | Flag 16 | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
 | Flag 17 | Learn about write responses | [More](docs/hints/flag17.md) |
+| Flag 18 | Hidden notify property | [More](docs/hints/flag18.md) |
 <!---
-| Flag 15 | Learn about write responses | [More](docs/hints/flag15.md) |
 | Flag 15 | Learn about advertisements | [More](docs/hints/flag15.md) |
 | Flag 18 | Learn about connection security attributes | [More](docs/hints/flag18.md) |
 | Flag 19 | Learn about BT broadcast messages | [More](docs/hints/flag19.md) |
