@@ -28,7 +28,7 @@ Show score with gatttool:
 ```` gatttool -b de:ad:be:ef:be:f1 --char-read -a 0x002a|awk -F':' '{print $2}'|tr -d ' '|xxd -r -p;printf '\n'  ````
 
 Show score with bleah:  
-```` sudo bleah -b "30:ae:a4:20:79:da" -h 0x002a ````
+```` sudo bleah -b "30:ae:a4:20:79:da" -e ````
 
 Ok, ok, ok, on to the flags! All flags are md5 sums truncated to 20 characters to avoid MTU limits by some hardware.  They can be submitted to the gatt server on handle 44.  The following are examples of how to submit a flag.  Make sure you replace the MAC address in the example commands with the MAC address of your device:   
 
