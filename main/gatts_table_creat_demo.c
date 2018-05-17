@@ -175,8 +175,8 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI_READ  = 0xFF10;
 static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI       = 0xFF11;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF12;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF13;
-//TODO: make me read/write only.  Remember i have code in read, write & response
 static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
+static const uint16_t GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY        = 0xFF15;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -204,6 +204,7 @@ static const char indicate_read_value[] = "Listen to handle 0x0044 for a single 
 static const char notification_multi_read_value[] = "Listen to me for multi notifications";
 static const char indicate_multi_read_value[] = "Listen to handle 0x004a for multi indications";
 static const char brute_write_flag[] = "Brute force my value 00 to ff";
+static const char hidden_notify_value[] = "No notifications here! really?";
 static const char write_response_data[20] = "Write+resp 'hello'  ";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
@@ -448,6 +449,19 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
     //{{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_response_data)-1, (uint8_t *)write_response_data}},
+
+    /* FLAG hidden notify Characteristic Declaration */
+    [IDX_CHAR_FLAG_HIDDEN_NOTIFY]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_HIDDEN_NOTIFY]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(hidden_notify_value)-1, (uint8_t *)hidden_notify_value}},
+
+
+
 
 };
 
@@ -771,6 +785,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         // we dont have to do send_response here it will hit the catchall
                     }
                 }
+                // notify hidden notify flag
+                if (blectf_handle_table[IDX_CHAR_FLAG_HIDDEN_NOTIFY]+1 == param->write.handle)
+                {
+                    indicate_handle_state = blectf_handle_table[IDX_CHAR_FLAG_HIDDEN_NOTIFY]; 
+                    char notify_data[20] = "fc920c68b6006169477b";
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_HIDDEN_NOTIFY]+1, sizeof(hidden_notify_value)-1, (uint8_t *)hidden_notify_value);
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_HIDDEN_NOTIFY], sizeof(notify_data), (uint8_t *)notify_data, false);
+                }
 
                 //handle flags
                 if (blectf_handle_table[IDX_CHAR_FLAG]+1 == param->write.handle)
@@ -846,6 +868,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     if (strcmp(writeData,"d41d8cd98f00b204e980") == 0){
                         //write response
                         flag_state[16] = 'T';
+                    }
+                    if (strcmp(writeData,"fc920c68b6006169477b") == 0){
+                    "fc920c68b6006169477b"
+                        //hidden notify
+                        flag_state[17] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
