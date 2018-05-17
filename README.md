@@ -42,22 +42,22 @@ Submit using bleah:
 | Flag | Description | Hint |
 | ------- | ----------------------------- | ------- |
 | Flag 1 | This flag is a gift and can only be obtained from reading the hint! | [Read Me!](docs/hints/flag1.md) |
-| Flag 2 | Learn how to read handles | [More](docs/hints/flag2.md) |
-| Flag 3 | Read handle puzzle fun | [More](docs/hints/flag3.md) |
-| Flag 4 | Learn about discoverable device attributes | [More](docs/hints/flag4.md) |
-| Flag 5 | Learn about reading and writing to handles | [More](docs/hints/flag5.md) |
-| Flag 6 | Learn about reading and writing ascii to handles | [More](docs/hints/flag6.md) |
-| Flag 7 | Learn about reading and writing hex to handles | [More](docs/hints/flag7.md) |
-| Flag 8 | Learn about reading and writing to handles differently | [More](docs/hints/flag8.md) |
-| Flag 9 | Learn about write fuzzing | [More](docs/hints/flag9.md) |
-| Flag 10 | Learn about read and write speeds | [More](docs/hints/flag10.md) |
-| Flag 11 | Learn about single response notifications | [More](docs/hints/flag11.md) |
-| Flag 12 | Learn about single response indicate | [More](docs/hints/flag12.md) |
-| Flag 13 | Learn about multi response notifications | [More](docs/hints/flag13.md) |
-| Flag 14 | Learn about multi response indicate | [More](docs/hints/flag14.md) |
-| Flag 15 | Learn about BT client device attributes | [More](docs/hints/flag15.md) |
-| Flag 16 | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
-| Flag 17 | Learn about write responses | [More](docs/hints/flag17.md) |
-| Flag 18 | Hidden notify property | [More](docs/hints/flag18.md) |
-| Flag 19 | Use multiple handle properties | [More](docs/hints/flag19.md) |
-| Flag 20 | OSINT the author! | [More](docs/hints/flag20.md) |
+| Flag 0x002e | Learn how to read handles | [More](docs/hints/flag2.md) |
+| Flag 0x0030 | Read handle puzzle fun | [More](docs/hints/flag3.md) |
+| Flag 0x0016 | Learn about discoverable device attributes | [More](docs/hints/flag4.md) |
+| Flag 0x0032 | Learn about reading and writing to handles | [More](docs/hints/flag5.md) |
+| Flag 0x0034 | Learn about reading and writing ascii to handles | [More](docs/hints/flag6.md) |
+| Flag 0x0036 | Learn about reading and writing hex to handles | [More](docs/hints/flag7.md) |
+| Flag 0x0038 | Learn about reading and writing to handles differently | [More](docs/hints/flag8.md) |
+| Flag 0x003c | Learn about write fuzzing | [More](docs/hints/flag9.md) |
+| Flag 0x003e | Learn about read and write speeds | [More](docs/hints/flag10.md) |
+| Flag 0x0040 | Learn about single response notifications | [More](docs/hints/flag11.md) |
+| Flag 0x0042 | Learn about single response indicate | [More](docs/hints/flag12.md) |
+| Flag 0x0046 | Learn about multi response notifications | [More](docs/hints/flag13.md) |
+| Flag 0x0048 | Learn about multi response indicate | [More](docs/hints/flag14.md) |
+| Flag 0x004c | Learn about BT client device attributes | [More](docs/hints/flag15.md) |
+| Flag 0x004e | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
+| Flag 0x0050 | Learn about write responses | [More](docs/hints/flag17.md) |
+| Flag 0x0052 | Hidden notify property | [More](docs/hints/flag18.md) |
+| Flag 0x0054 | Use multiple handle properties | [More](docs/hints/flag19.md) |
+| Flag 0x0056 | OSINT the author! | [More](docs/hints/flag20.md) |
