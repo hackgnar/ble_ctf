@@ -1,2 +1,3 @@
 ## Flag 20 Hint
-Not yet implemented.
+
+Figure out the authors twitter handle and do what 0x0056 tells you to do!

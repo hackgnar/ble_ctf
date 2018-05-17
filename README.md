@@ -59,10 +59,5 @@ Submit using bleah:
 | Flag 16 | Learn about message sizes MTU | [More](docs/hints/flag16.md) |
 | Flag 17 | Learn about write responses | [More](docs/hints/flag17.md) |
 | Flag 18 | Hidden notify property | [More](docs/hints/flag18.md) |
-<!---
-| Flag 15 | Learn about advertisements | [More](docs/hints/flag15.md) |
-| Flag 18 | Learn about connection security attributes | [More](docs/hints/flag18.md) |
-| Flag 19 | Learn about BT broadcast messages | [More](docs/hints/flag19.md) |
---->
-
-Flags are currently being released on a very frequent basis (1-5 per week).  We have many more flag ideas!  More flags comming soon!  Stay tuned!
+| Flag 19 | Use multiple handle properties | [More](docs/hints/flag19.md) |
+| Flag 20 | OSINT the author! | [More](docs/hints/flag20.md) |
