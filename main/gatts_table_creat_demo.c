@@ -175,6 +175,7 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI_READ  = 0xFF10;
 static const uint16_t GATTS_CHAR_UUID_FLAG_INDICATE_MULTI       = 0xFF11;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF12;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF13;
+//TODO: make me read/write only.  Remember i have code in read, write & response
 static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
@@ -191,7 +192,7 @@ static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 // start ctf data vars
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
-static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','1','7'};
+static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','1','8'};
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
@@ -202,8 +203,8 @@ static const char notification_read_value[] = "Listen to me for a single notific
 static const char indicate_read_value[] = "Listen to handle 0x0044 for a single indication";
 static const char notification_multi_read_value[] = "Listen to me for multi notifications";
 static const char indicate_multi_read_value[] = "Listen to handle 0x004a for multi indications";
-static const char write_response_value[] = "Write some data to me and watch my response";
 static const char brute_write_flag[] = "Brute force my value 00 to ff";
+static const char write_response_data[20] = "Write+resp 'hello'  ";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
 //static const uint8_t brute_write_flag[33] = {'B','r','u','t','e',' ','f','o','r','c','e',' ','m','y',' ','v','a','l','u','e', ' ', '0','x','0','0',' ','t','o',' ','0','x','f','f'};
@@ -215,6 +216,7 @@ static char string_score[10] = "0";
 int BLINK_GPIO=2;
 int indicate_handle_state = 0;
 int send_response=0;
+int check_send_response=0;
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
@@ -445,7 +447,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_FLAG_WRITE_RESPONSE]  =
     {{ESP_GATT_RSP_BY_APP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
     //{{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_response_value)-1, (uint8_t *)write_response_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(write_response_data)-1, (uint8_t *)write_response_data}},
 
 };
 
@@ -643,10 +645,16 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (param->read.handle == blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1){
                 // add an ascii value write check to this one
                 esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
-                char write_response_data[20] = "Write+resp 'hello'  ";
-                rsp->attr_value.len = sizeof(write_response_data);
-                rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-                memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
+                if (flag_state[16] == 'T' || flag_state[16] == 'H'){
+                    char write_response_flag[] = "d41d8cd98f00b204e980";
+                    rsp->attr_value.len = sizeof(write_response_flag);
+                    rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                    memcpy(rsp->attr_value.value, (uint8_t *)write_response_flag, sizeof(write_response_flag));
+                }else{
+                    rsp->attr_value.len = sizeof(write_response_data);
+                    rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
+                    memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
+                }
 
                 esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, rsp);
             }
@@ -758,16 +766,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 //"d41d8cd98f00b204e980"
                 if (blectf_handle_table[IDX_CHAR_FLAG_WRITE_RESPONSE]+1 == param->write.handle)
                 {
-                    ESP_LOGI(GATTS_TABLE_TAG, "trying hello");
                     if (strcmp(writeData,"hello") == 0){
-                        ESP_LOGI(GATTS_TABLE_TAG, "hello sent");
-                        send_response=1;
-                        esp_gatt_rsp_t *rsp = (esp_gatt_rsp_t *)malloc(sizeof(esp_gatt_rsp_t));
-                        char write_response_data[20] = "d41d8cd98f00b204e980";
-                        rsp->attr_value.len = 20;
-                        rsp->attr_value.auth_req = ESP_GATT_AUTH_REQ_NONE;
-                        memcpy(rsp->attr_value.value, (uint8_t *)write_response_data, sizeof(write_response_data));
-                        esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, rsp);
+                        check_send_response=1;
+                        // we dont have to do send_response here it will hit the catchall
                     }
                 }
 
@@ -851,7 +852,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     set_score();
                 }
                 /* send response when param->write.need_rsp is true*/
-                if (param->write.need_rsp && send_response == 0){
+                //if (param->write.need_rsp && send_response == 0){
+                if (param->write.need_rsp){
                     ESP_LOGI(GATTS_TABLE_TAG, "CATCH ALL SEND RESPONSE TRIGGERED");
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
                 }
@@ -875,9 +877,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         case ESP_GATTS_CONF_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_CONF_EVT, status = %d", param->conf.status);
             // notify multi
-            // TODO: add a delay here as this tends to crash the gatt server with out of mem errors
             if (indicate_handle_state == blectf_handle_table[IDX_CHAR_FLAG_NOTIFICATION_MULTI]){
                 char indicate_data[20] = "c9457de5fd8cafe349fd";
+                // delay was added cause with none, this crashed the server
+                vTaskDelay(100);
                 esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION_MULTI], sizeof(indicate_data), (uint8_t *)indicate_data, false);
             }
             // indicate multi
@@ -954,11 +957,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             break;
         case ESP_GATTS_RESPONSE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_RESPONSE_EVT");
-            if (send_response){
-                send_response=0;
-                char write_response_data[20] = "d41d8cd98f00b204e980";
-                esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_NOTIFICATION], sizeof(write_response_data), (uint8_t *)write_response_data, false);
+            //TODO: change the following to set a read value instead of doing a notify
+            if (check_send_response == 1){
+                check_send_response = 0;
+                if (flag_state[16] != 'T'){
+                    flag_state[16] = 'H';
+                }
             }
+            
             break;
         default:
             break;
