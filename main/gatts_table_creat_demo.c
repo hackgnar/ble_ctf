@@ -177,6 +177,8 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_MAC                  = 0xFF12;
 static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF13;
 static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
 static const uint16_t GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY        = 0xFF15;
+static const uint16_t GATTS_CHAR_UUID_FLAG_CRAZY                = 0xFF16;
+static const uint16_t GATTS_CHAR_UUID_FLAG_TWITTER              = 0xFF17;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -186,13 +188,14 @@ static const uint8_t char_prop_write               = ESP_GATT_CHAR_PROP_BIT_WRIT
 static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_NOTIFY;
 static const uint8_t char_prop_read_write_indicate   = ESP_GATT_CHAR_PROP_BIT_WRITE |ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
+static const uint8_t char_prop_crazy   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_EXT_PROP | ESP_GATT_CHAR_PROP_BIT_BROADCAST |  ESP_GATT_CHAR_PROP_BIT_NOTIFY ;
 static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
 static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 
 // start ctf data vars
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
-static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','1','8'};
+static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
@@ -205,6 +208,8 @@ static const char notification_multi_read_value[] = "Listen to me for multi noti
 static const char indicate_multi_read_value[] = "Listen to handle 0x004a for multi indications";
 static const char brute_write_flag[] = "Brute force my value 00 to ff";
 static const char hidden_notify_value[] = "No notifications here! really?";
+static const char crazy_value[] = "So many properties!";
+static const char twitter_value[] = "md5 of author's twitter handle";
 static const char write_response_data[20] = "Write+resp 'hello'  ";
 static const uint8_t read_write2_value[23] = {'W','r','i','t','e',' ','0','x','C','9',' ','t','o',' ','h','a','n','d','l','e',' ','5','8'};
 
@@ -236,7 +241,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_SCORE]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_SCORE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(score_read_value), (uint8_t *)score_read_value}},
-//////
+    
     /* FLAG Characteristic Declaration */
     [IDX_CHAR_FLAG]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
@@ -460,8 +465,25 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(hidden_notify_value)-1, (uint8_t *)hidden_notify_value}},
 
+    /* FLAG crazy Characteristic Declaration */
+    [IDX_CHAR_FLAG_CRAZY]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_crazy}},
 
+    /* Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_CRAZY]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_CRAZY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(crazy_value)-1, (uint8_t *)crazy_value}},
 
+    /* FLAG twitter Characteristic Declaration */
+    [IDX_CHAR_FLAG_TWITTER]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* FLAG twitter Characteristic Value */
+    [IDX_CHAR_VAL_FLAG_TWITTER]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_TWITTER, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(twitter_value)-1, (uint8_t *)twitter_value}},
 
 };
 
@@ -794,6 +816,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_HIDDEN_NOTIFY], sizeof(notify_data), (uint8_t *)notify_data, false);
                 }
 
+                // so many properties
+                if (blectf_handle_table[IDX_CHAR_FLAG_CRAZY]+1 == param->write.handle)
+                {
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_CRAZY]+1, 10, (uint8_t *)"fbb966958f");
+                    char notify_data[10] = "07e4a0cc48";
+                    esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, blectf_handle_table[IDX_CHAR_VAL_FLAG_CRAZY], sizeof(notify_data), (uint8_t *)notify_data, false);
+                }
+
                 //handle flags
                 if (blectf_handle_table[IDX_CHAR_FLAG]+1 == param->write.handle)
                 {
@@ -872,6 +902,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     if (strcmp(writeData,"fc920c68b6006169477b") == 0){
                         //hidden notify
                         flag_state[17] = 'T';
+                    }
+                    if (strcmp(writeData,"fbb966958f07e4a0cc48") == 0){
+                        //hidden notify
+                        flag_state[18] = 'T';
+                    }
+                    if (strcmp(writeData,"7b6b57120625e6fcb84a") == 0){
+                        //final flag
+                        flag_state[19] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
