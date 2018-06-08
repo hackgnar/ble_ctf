@@ -6,8 +6,8 @@ The purpose of BLE CTF is to teach the core concepts of Bluetooth Low Energy cli
 ## Setting Up the CTF
 In order to set up the CTF you will need the following:
 1. The code in this repository to build the CTF GATT server
-2. An esp32 microcontroller
-3. A computer (preferably OSX or Linux) with a bluetooth controller or a bluetooth usb dongle
+2. An esp32 microcontroller ([I sell overpriced pre-flashed ones here](https://www.ebay.com/itm/BLE-CTF-ESP32-Development-Board-2-4GHz-WIFI-Bluetooth/173355878016?hash=item285cd0c680:g:GZgAAOSwiMRbGeKU))
+3. A Linux computer (OSX/Win with a Linux VM works too) with a bluetooth controller or a bluetooth usb dongle ([I ❤️ UD100s](https://www.amazon.com/Sena-UD100-Bluetooth-Class1-Adapter/dp/B01BHD7WR2/ref=cm_cr_arp_d_product_top?ie=UTF8))
 4. Bluetooth tools such as Bluez tools (hcitool, gatttool, etc) or [bleah](https://github.com/evilsocket/bleah)
 
 To get setup, [read this documentation](docs/setup.md)
