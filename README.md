@@ -1,3 +1,5 @@
+[![Follow Hackgnar](static/twitter_hackgnar.png)](https://twitter.com/hackgnar)
+
 ## BLE Capture the Flag
 The purpose of BLE CTF is to teach the core concepts of Bluetooth Low Energy client and server interactions.  While it has also been built to be fun, it was built with the intent to teach and reinforce core concepts that are needed to plunge into the world of Bluetooth hacking.  After completing this CTF, you should have everything you need to start fiddling with any BLE GATT device you can find.
 
