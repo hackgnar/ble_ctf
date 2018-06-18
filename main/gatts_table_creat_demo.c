@@ -1067,8 +1067,8 @@ void app_main()
 {
     esp_err_t ret;
 
-    uint8_t new_mac[8] = {0xDE,0xAD,0xBE,0xEF,0xBE,0xEF};
-    esp_base_mac_addr_set(new_mac);
+    //uint8_t new_mac[8] = {0xDE,0xAD,0xBE,0xEF,0xBE,0xEF};
+    //esp_base_mac_addr_set(new_mac);
     
     /* Initialize NVS. */
     ret = nvs_flash_init();
