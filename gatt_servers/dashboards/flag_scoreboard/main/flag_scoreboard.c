@@ -57,8 +57,7 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name (first number is the length) */
-	//TODO generate flag name
-        0x0a, 0x09, 'B', 'L', 'E', '_' ,'C', 'T', 'F', '2'
+        0x0f, 0x09, 'B', 'L', 'E', '_' ,'C', 'T', 'F', '_', 'S', 'C', 'O', 'R', 'E'
 
 };
 static uint8_t raw_scan_rsp_data[] = {
@@ -152,6 +151,8 @@ static const uint16_t GATTS_SERVICE_UUID_TEST                   = 0x00FF;
 static const uint16_t GATTS_CHAR_UUID_READ_DOCS                 = 0xFF01;
 static const uint16_t GATTS_CHAR_UUID_READ_FLAGS_COMPLETE       = 0xFF02;
 static const uint16_t GATTS_CHAR_UUID_READ_WRITE_SUBMIT         = 0xFF03;
+static const uint16_t GATTS_CHAR_UUID_READ_WRITE_WARP           = 0xFF04;
+static const uint16_t GATTS_CHAR_UUID_READ_WRITE_RESET          = 0xFF05;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -163,9 +164,15 @@ static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP
 // start ctf data vars
 static char writeData[100];
 static const char docs_value[] = "docs: https://github.com/hackgnar/ble_ctf";
-//TODO generage flag value
-static const char flags_complete_value[] = "Flags complete: xx/xx";
+static unsigned char flags_complete_value[] = "Flags complete:   /  ";
+//TODO code gen the value below
+static int int_total_flags = 40;
+static char string_total_flags[] = "40";
+static char string_current_score[] = "11";
 static const char flags_submit_value[] = "Submit flags here";
+static const char warp_value[] = "Write 0x00 to 0xXX to goto flag";
+static const char reset_value[] = "Write 0xC1EA12 to reset all flags";
+//TODO generage flag value
 //CODE_GENERATE_FLAG_STATUS_VALUES
 static const char flag_xx_value[] = "Flag xx: Complete|Incomplete";
 
@@ -201,9 +208,127 @@ static const esp_gatts_attr_db_t gatt_db[FLAG_SCOREBOARD_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAGS_COMPLETE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flags_submit_value)-1, (uint8_t *)flags_submit_value}},
 
+    /* Flags Submission Declaration */
+    [FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_WARP]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    [FLAG_SCOREBOARD_IDX_CHAR_VAL_READ_WRITE_WARP]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAGS_COMPLETE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(warp_value)-1, (uint8_t *)warp_value}},
+
+    /* Flags Submission Declaration */
+    [FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_RESET]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+    [FLAG_SCOREBOARD_IDX_CHAR_VAL_READ_WRITE_RESET]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAGS_COMPLETE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(reset_value)-1, (uint8_t *)reset_value}},
+
     /* Generated Flag Status */
     //CODE_GENERATE_FLAG_STATUS_HANDLES
 };
+
+void goto_flag(uint16_t descr_value)
+{
+    // Initialize NVS
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        // NVS partition was truncated and needs to be erased
+        // Retry nvs_flash_init
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK( err );
+    // Open
+    printf("\n");
+    printf("Opening Non-Volatile Storage (NVS) handle... ");
+    nvs_handle my_handle;
+    err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        printf("Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    }else
+    {
+        ESP_LOGI(GATTS_TABLE_TAG, "writing value = %d", descr_value);
+        err = nvs_set_i32(my_handle, "current_flag", descr_value);
+        err = nvs_commit(my_handle);
+    }
+    nvs_close(my_handle);
+    
+}
+
+//TODO: add this to the string generator for score... look at the v1 method for this
+//when i need it to look for flash values, look at the nvs demo
+int get_current_score()
+{
+    int current_score = 0;
+    // Initialize NVS
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        // NVS partition was truncated and needs to be erased
+        // Retry nvs_flash_init
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK( err );
+    // Open
+    printf("\n");
+    printf("Opening Non-Volatile Storage (NVS) handle... ");
+    nvs_handle my_handle;
+    err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    int32_t current_flag = 0; // value will default to 0, if not set yet in NVS
+    if (err != ESP_OK) {
+        printf("Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    } else {
+        for (int i = 0 ; i < int_total_flags ; ++i){
+            // Read
+            printf("Reading current active flag from NVS ... ");
+            char flag_name[] = "flag_";
+            char flag_number[] = "";
+            itoa(i, flag_number, 10);
+            strcat(flag_name, flag_number);
+            ESP_LOGI(GATTS_TABLE_TAG, "######## checking flag: %s ########", flag_name);
+            err = nvs_get_i32(my_handle, flag_name, &current_flag);
+            switch (err) {
+                case ESP_OK:
+                    printf("Done\n");
+                    printf("Current active flag = %d\n", current_flag);
+                    if (current_flag == 1){
+                        current_score++;
+                    }
+                    break;
+                case ESP_ERR_NVS_NOT_FOUND:
+                    printf("The value is not initialized yet!\n");
+                    break;
+                default :
+                    printf("Error (%s) reading!\n", esp_err_to_name(err));
+            }
+        }
+    }
+    // Close
+    nvs_close(my_handle);
+
+    return current_score;
+}
+void set_current_score()
+{
+    //TODO fix bug where this does not display anything for current score or total flags when first scanned
+    //sudo gatttool -b 80:7D:3A:C4:1C:8A --ch -F":" '{print $2}'|tr -d ' '|xxd -r -p
+    int current_score = get_current_score();
+    itoa(current_score, string_current_score, 10);
+    for (int i = 0 ; i < strlen(string_current_score) ; ++i)
+    {
+        if (strlen(string_current_score) == 1){
+            flags_complete_value[17] = ' ';}
+        flags_complete_value[16+i] = string_current_score[i];
+    }
+    for (int i = 0 ; i < strlen(string_total_flags) ; ++i)
+    {
+        if (strlen(string_total_flags) == 1){
+            flags_complete_value[20] = ' ';}
+        flags_complete_value[19+i] = string_total_flags[i];
+    }
+    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_FLAGS_COMPLETE]+1, sizeof(flags_complete_value)-1, flags_complete_value);
+}
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
 {
@@ -306,8 +431,10 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
         }
        	    break;
         case ESP_GATTS_READ_EVT:
-            ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT, handle = %d", param->read.handle);
+            if (param->read.handle == 0x002c){
+                set_current_score();
+            }
 
        	    break;
         case ESP_GATTS_WRITE_EVT:
@@ -316,10 +443,35 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (!param->write.is_prep){
                 ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
-                
                 // store write data for flag checking
                 memset(writeData, 0, sizeof writeData);
                 memcpy(writeData, param->write.value, 20); 
+                //TODO: add check for handle value going to flag submision
+                if (param->write.handle == 0x002e){
+                        ESP_LOGI(GATTS_TABLE_TAG, "FLAG SUBMISSION %s", writeData);
+
+                }
+                //TODO add check that current_flag is in range of flags
+                //TODO: add check for handle value going to warp.. like len = 2, etc
+                //sudo bleah -b 80:7D:3A:C4:1C:8A -n 0x0030 -d 0x0100
+                if (param->write.handle == 0x0030){
+                    uint16_t descr_value = param->write.value[0]<<8 |param->write.value[1];
+                    //uint16_t descr_value = param->write.value;
+                    goto_flag(descr_value); 
+                    //todo: add reset command
+                }
+                //TODO: add check for handle value going to reset
+                //TODO: add check for handle value doing reset.. like len = 3, etc
+                if (param->write.handle == 0x0032){
+                    uint32_t descr_value = param->write.value[0]<<16 |param->write.value[1]<<8 |param->write.value[2];
+                    if (descr_value == 0xC1EA12){
+                        //reset_flags();
+                        ESP_LOGI(GATTS_TABLE_TAG, "RESETTING ALL FLAGS");
+                    }
+                }
+                //TODO: fix the issue with writing values overwriting the default read value
+                
+
             }
             else{
                 /* handle prepare write */
