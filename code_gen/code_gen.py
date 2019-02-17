@@ -2,6 +2,7 @@
 import csv
 import fileinput
 import shutil
+import os
 
 flag_file_data = {}
 
@@ -9,8 +10,18 @@ flag_file_data = {}
 #todo: generate/change main methods in each gatt file and header
 #todo: codegen flag values
 
-def copy_gatt_server_files():
-    pass
+def copy_gatt_server_files(proj_dir):
+    gatt_server_dir = os.path.join(proj_dir, "gatt_servers")
+    main_dir = os.path.join(proj_dir, "main")
+    print(gatt_server_dir)
+    #shutil.copyfile(src, dst)
+    for k, v in flag_file_data.iteritems():
+        src = os.path.join(gatt_server_dir, v["gatt_name"], "main", v["gatt_name"])
+        dst = os.path.join(main_dir, v["gatt_name"])
+        print("moving %s to %s" % (src, dst))
+    #todo copy over common files
+    #todo copy over make file
+    #todo copy over componet file
 
 def import_flag_file_data(filename):
     i = 0
@@ -104,10 +115,6 @@ if __name__ == "__main__":
     ble_ctf_dir = "/home/ripper/src/ble_ctf"
 
     # default args
-    gatt_server_dir = "gatt_servers"
-    dashboard_dir = "gatt_servers/dashboards"
-    dashboard_default = "flag_scoreboard"
-
 
     import_flag_file_data(filename)
     generate_header_flag_idx()
@@ -117,3 +124,4 @@ if __name__ == "__main__":
     generate_flag_read_values()
     generate_flag_declarations()
     generate_flag_validate_conditional()
+    copy_gatt_server_files(ble_ctf_dir)

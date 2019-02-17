@@ -1,3 +1,4 @@
 gatt_name, flag_value
+flag_scoreboard, 00000000000000000000
 read_disconnect, 11111111111111111111
 mitm_psk_pair_req, 22222222222222222222
