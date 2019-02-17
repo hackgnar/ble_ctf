@@ -175,7 +175,7 @@ static char string_current_score[] = "11";
 static const char flags_submit_value[] = "Submit flags here";
 static const char warp_value[] = "Write 0x0000 to 0x00FF to goto flag";
 static const char reset_value[] = "Write 0xC1EA12 to reset all flags";
-//GODEGEN_FLAG_READ_VALUES
+//CODEGEN_FLAG_READ_VALUES
 static const char flag_xx_value[] = "Flag xx: Complete|Incomplete";
 
 /* Full Database Description - Used to add attributes into the database */
