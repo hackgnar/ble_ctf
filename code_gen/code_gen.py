@@ -6,22 +6,104 @@ import os
 
 flag_file_data = {}
 
-#todo: generate gatt server load conditional
-#todo: generate/change main methods in each gatt file and header
 #todo: codegen flag values
 
+def generate_app_main(proj_dir, dashboard):
+    main_dir = os.path.join(proj_dir, "main", dashboard)
+    dst_c = main_dir + '.c'
+    sig = "//CODEGEN_APP_MAIN"
+    code_gen ="""
+void app_main()
+{
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK( err );
+    nvs_handle my_handle;
+    err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    int32_t current_flag = 0; // value will default to 0, if not set yet in NVS
+    if (err != ESP_OK) {
+        ESP_LOGI(GATTS_TABLE_TAG, "Error (%s) opening NVS handle!", esp_err_to_name(err));
+    } else {
+        err = nvs_get_i32(my_handle, "current_flag", &current_flag);
+        switch (err) {
+            case ESP_OK:
+                ESP_LOGI(GATTS_TABLE_TAG, "Retrieved current flag value");
+                break;
+            case ESP_ERR_NVS_NOT_FOUND:
+                ESP_LOGI(GATTS_TABLE_TAG, "The value is not initialized yet!");
+                break;
+            default :
+                ESP_LOGI(GATTS_TABLE_TAG, "Error (%s) reading!", esp_err_to_name(err));
+        }
+    }
+    nvs_close(my_handle);
+
+    if (current_flag == 0){
+        flag_scoreboard_main();
+    }
+    if (current_flag == 1){
+        read_disconnect_main();
+    }
+    if (current_flag == 2){
+        mitm_psk_pair_req_main();
+    }
+}
+"""
+    f = open(dst_c,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(dst_c,'w')
+    f.write(newdata)
+    f.close()
+    
+
+def generate_main_gatt_method_names(proj_dir):
+    main_dir = os.path.join(proj_dir, "main")
+    sig = "void app_main()"
+    for k, v in flag_file_data.iteritems():
+        dst = os.path.join(main_dir, v["gatt_name"])
+        dst_c = dst + ".c"
+        dst_h = dst + ".h"
+        code_gen = "void %s_main()" % (v["gatt_name"])
+
+        f = open(dst_c,'r')
+        filedata = f.read()
+        f.close()
+        newdata = filedata.replace(sig,code_gen)
+        f = open(dst_c,'w')
+        f.write(newdata)
+        f.close()
+        f = open(dst_h,'r')
+        filedata = f.read()
+        f.close()
+        newdata = filedata.replace(sig,code_gen)
+        f = open(dst_h,'w')
+        f.write(newdata)
+        f.close()
+ 
 def copy_gatt_server_files(proj_dir):
     gatt_server_dir = os.path.join(proj_dir, "gatt_servers")
     main_dir = os.path.join(proj_dir, "main")
-    print(gatt_server_dir)
-    #shutil.copyfile(src, dst)
     for k, v in flag_file_data.iteritems():
         src = os.path.join(gatt_server_dir, v["gatt_name"], "main", v["gatt_name"])
         dst = os.path.join(main_dir, v["gatt_name"])
-        print("moving %s to %s" % (src, dst))
-    #todo copy over common files
-    #todo copy over make file
+        shutil.copyfile(src + ".c", dst + ".c")
+        shutil.copyfile(src + ".h", dst + ".h")
+    #copy over common files
+    src = os.path.join(gatt_server_dir, "common", "gatt_server_common")
+    dst = os.path.join(main_dir, "gatt_server_common")
+    shutil.copyfile(src + ".c", dst + ".c")
+    shutil.copyfile(src + ".h", dst + ".h")
     #todo copy over componet file
+    src = os.path.join(gatt_server_dir, "common", "component.mk")
+    dst = os.path.join(main_dir, "component.mk")
+    shutil.copyfile(src, dst)
+
+    #todo copy over make file
 
 def import_flag_file_data(filename):
     i = 0
@@ -35,57 +117,95 @@ def import_flag_file_data(filename):
     print(flag_file_data)
     print("#########################")
 
-#//CODEGEN_HEADER_FLAG_IDX
-def generate_header_flag_idx():
+def generate_header_flag_idx(filename):
+    sig = "//CODEGEN_HEADER_FLAG_IDX"
     template = """
 FLAG_SCOREBOARD_IDX_CHAR_READ_FLAG_%i,
 FLAG_SCOREBOARD_IDX_CHAR_VAL_READ_FLAG_%i,"""
-    print("######### HEADER_FLAG_IDX #########")
+    code_gen = sig
     for i in range(len(flag_file_data)):
-        print(template % (i, i))
+        code_gen += template % (i, i)
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
 
-#//CODEGEN_INCLUDES
-def generate_includes():
+def generate_includes(filename):
+    sig = "//CODEGEN_INCLUDES"
     template = """
-#include "%s.h"""
-    print("######### INCLUDES #########")
+#include "%s.h" """
+    code_gen = sig
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
     for i in range(len(flag_file_data)):
         flag_header = flag_file_data["flag_%s" % (str(i))]["gatt_name"]
-        print(template % (flag_header))
+        if flag_header not in filedata:
+            code_gen += template % (flag_header)
+    #TODO: move the file read up top and check if each line is in there in the 4 loop
 
-#//CODEGEN_HANDLE_LOCATIONS
-def generate_handle_locations():
+    newdata = filedata.replace(sig,code_gen)
+
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
+
+def generate_handle_locations(filename):
+    sig = "//CODEGEN_HANDLE_LOCATIONS"
     template = """
 static const uint16_t GATTS_CHAR_UUID_READ_FLAG_%s = 0xFF%s;"""
-    print("######### HANDLE LOCATIONS #########")
     location = 6
+    code_gen = sig
     for i in range(len(flag_file_data)):
         hex_location = hex(location+i)[2:].zfill(2)
-        print(template % (str(i), str(hex_location).upper()))
+        code_gen += template % (str(i), str(hex_location).upper())
+    
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
 
-#//CODEGEN_TOTAL_FLAGS
-def generate_total_flags():
+def generate_total_flags(filename):
+    sig = "//CODEGEN_TOTAL_FLAGS"
     template = """
 int_total_flags = %d;
-string_total_flags = "%d";"""
-    print("######### TOTAL FLAGS #########")
+strcpy(string_total_flags, "%d");"""
+    code_gen = sig
     i = len(flag_file_data)
-    print(template % (i, i))
+    code_gen += template % (i, i)
 
-#todo: generate flag string read values
-#//CODEGEN_FLAG_READ_VALUES
-"""
-static const char flag_xx_value[] = "Flag xx: Complete|Incomplete";
-"""
-def generate_flag_read_values():
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
+
+def generate_flag_read_values(filename):
+    sig = "//CODEGEN_FLAG_READ_VALUES"
     template = """
-static const char flag_%d_value[] = "Flag %d: Incomplete";"""
-    print("######### FLAG READ VALUES #########")
+static char flag_%d_value[] = "Flag %d: Incomplete";"""
+    code_gen = sig
     for i in range(len(flag_file_data)):
-        print(template % (i, i))
+        code_gen += template % (i, i)
+    
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
 
-#//CODEGEN_FLAG_DECLARATIONS
-def generate_flag_declarations():
+def generate_flag_declarations(filename):
+    sig = "//CODEGEN_FLAG_DECLARATIONS"
     template = """
 [FLAG_SCOREBOARD_IDX_CHAR_READ_FLAG_%d]      =
 {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -94,34 +214,58 @@ def generate_flag_declarations():
 [FLAG_SCOREBOARD_IDX_CHAR_VAL_READ_FLAG_%d]  =
 {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_DOCS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
   GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_%d_value)-1, (uint8_t *)flag_%d_value}},"""
-    print("######### FLAG DECLARATIONS #########")
+    code_gen = sig
     for i in range(len(flag_file_data)):
-        print(template % (i, i, i, i))
+        code_gen += template % (i, i, i, i)
 
-#//CODEGEN_FLAG_VALIDATE_CONDITIONAL
-def generate_flag_validate_conditional():
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
+
+def generate_flag_validate_conditional(filename):
+    sig = "//CODEGEN_FLAG_VALIDATE_CONDITIONAL"
     template = """
 if (strcmp(writeData, "%s") == 0){
     err = nvs_set_i32(my_handle, "flag_%d", 1);
+    strcpy(flag_%d_value, "Flag %d: Complete");
+    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_FLAG_%d]+1, sizeof(flag_%d_value)-1, (uint8_t *)flag_%d_value);
 }"""
-    print("######### FLAG VALIDATE CONDITIONAL #########")
+    code_gen = sig
     for i in range(len(flag_file_data)):
         flag_value = flag_file_data["flag_%s" % (str(i))]["flag_value"]
-        print(template % (flag_value, i))
+        code_gen += template % (flag_value, i,i,i,i,i,i)
+
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
 
 if __name__ == "__main__":
     # user args
     filename = "flag_config.csv"
     ble_ctf_dir = "/home/ripper/src/ble_ctf"
+    dashboard = "flag_scoreboard" 
 
     # default args
 
     import_flag_file_data(filename)
-    generate_header_flag_idx()
-    generate_includes()
-    generate_handle_locations()
-    generate_total_flags()
-    generate_flag_read_values()
-    generate_flag_declarations()
-    generate_flag_validate_conditional()
     copy_gatt_server_files(ble_ctf_dir)
+
+    dashboard_file = os.path.join(ble_ctf_dir, "main", flag_file_data["flag_0"]["gatt_name"]) 
+
+    generate_header_flag_idx(dashboard_file + ".h")
+    generate_includes(dashboard_file + ".c")
+    generate_handle_locations(dashboard_file + ".c")
+    generate_total_flags(dashboard_file + ".c")
+    generate_flag_read_values(dashboard_file + ".c")
+    generate_flag_declarations(dashboard_file + ".c")
+    generate_flag_validate_conditional(dashboard_file + ".c")
+    generate_main_gatt_method_names(ble_ctf_dir)
+    generate_app_main(ble_ctf_dir, dashboard)

@@ -434,6 +434,20 @@ void app_main()
     }
     ESP_ERROR_CHECK( ret );
 
+    //set current to 0 to return to dashboard on reset
+    esp_err_t err;
+    nvs_handle my_handle;
+    err = nvs_open("storage", NVS_READWRITE, &my_handle);
+    if (err != ESP_OK) {
+        ESP_LOGI(GATTS_TABLE_TAG, "Error (%s) opening NVS handle!\n", esp_err_to_name(err));
+    }else
+    {
+        ESP_LOGI(GATTS_TABLE_TAG, "writing value = %d", 0);
+        err = nvs_set_i32(my_handle, "current_flag", 0);
+        err = nvs_commit(my_handle);
+    }
+    nvs_close(my_handle);
+
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();

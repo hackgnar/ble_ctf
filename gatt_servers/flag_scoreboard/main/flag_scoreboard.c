@@ -168,10 +168,9 @@ static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP
 static char writeData[100];
 static const char docs_value[] = "docs: https://github.com/hackgnar/ble_ctf";
 static unsigned char flags_complete_value[] = "Flags complete:   /  ";
-//CODEGEN_TOTAL_FLAGS
-static int int_total_flags = 40;
-static char string_total_flags[] = "40";
-static char string_current_score[] = "11";
+static int int_total_flags = 0;
+static char string_total_flags[] = "0";
+static char string_current_score[] = "0";
 static const char flags_submit_value[] = "Submit flags here";
 static const char warp_value[] = "Write 0x0000 to 0x00FF to goto flag";
 static const char reset_value[] = "Write 0xC1EA12 to reset all flags";
@@ -624,6 +623,8 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 //TODO: add conditional to load main app from GATT server of flag set on current_flag nvs
 void app_main()
 {
+    //CODEGEN_TOTAL_FLAGS
+    
     ESP_LOGI(GATTS_TABLE_TAG, "######## LOADING FLAG SCOREBOARD ########");
     esp_err_t ret;
 
@@ -688,3 +689,4 @@ void app_main()
         ESP_LOGE(GATTS_TABLE_TAG, "set local  MTU failed, error code = %x", local_mtu_ret);
     }
 }
+//CODEGEN_APP_MAIN
