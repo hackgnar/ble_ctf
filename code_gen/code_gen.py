@@ -7,12 +7,13 @@ import os
 flag_file_data = {}
 
 #todo: codegen flag values
+#todo: codegen gatt devicenames
 
 def generate_app_main(proj_dir, dashboard):
     main_dir = os.path.join(proj_dir, "main", dashboard)
     dst_c = main_dir + '.c'
     sig = "//CODEGEN_APP_MAIN"
-    code_gen ="""
+    code_gen_header ="""
 void app_main()
 {
     esp_err_t err = nvs_flash_init();
@@ -40,22 +41,21 @@ void app_main()
         }
     }
     nvs_close(my_handle);
-
-    if (current_flag == 0){
-        flag_scoreboard_main();
-    }
-    if (current_flag == 1){
-        read_disconnect_main();
-    }
-    if (current_flag == 2){
-        mitm_psk_pair_req_main();
-    }
-}
 """
+    template = """
+if (current_flag == %d){
+    %s_main();
+    }
+"""
+    code_gen = ""
+    for i in range(len(flag_file_data)):
+        code_gen += template % (i, flag_file_data["flag_%d" % i]["gatt_name"])
+        i += 1
+    code_gen_header = sig + code_gen_header + code_gen + '}'
     f = open(dst_c,'r')
     filedata = f.read()
     f.close()
-    newdata = filedata.replace(sig,code_gen)
+    newdata = filedata.replace(sig,code_gen_header)
     f = open(dst_c,'w')
     f.write(newdata)
     f.close()
@@ -98,12 +98,10 @@ def copy_gatt_server_files(proj_dir):
     dst = os.path.join(main_dir, "gatt_server_common")
     shutil.copyfile(src + ".c", dst + ".c")
     shutil.copyfile(src + ".h", dst + ".h")
-    #todo copy over componet file
+    #copy over componet file
     src = os.path.join(gatt_server_dir, "common", "component.mk")
     dst = os.path.join(main_dir, "component.mk")
     shutil.copyfile(src, dst)
-
-    #todo copy over make file
 
 def import_flag_file_data(filename):
     i = 0
@@ -145,7 +143,6 @@ def generate_includes(filename):
         flag_header = flag_file_data["flag_%s" % (str(i))]["gatt_name"]
         if flag_header not in filedata:
             code_gen += template % (flag_header)
-    #TODO: move the file read up top and check if each line is in there in the 4 loop
 
     newdata = filedata.replace(sig,code_gen)
 
