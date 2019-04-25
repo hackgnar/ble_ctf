@@ -334,6 +334,8 @@ int get_current_score()
                         current_score++;
                         //TODO: set read handle value to "Flag xx: Complete"
                     }
+                    //CODEGEN_FLAG_STATUS
+
                     break;
                 case ESP_ERR_NVS_NOT_FOUND:
                     ESP_LOGI(GATTS_TABLE_TAG, "The value is not initialized yet!\n");

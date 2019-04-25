@@ -115,6 +115,31 @@ def import_flag_file_data(filename):
     print(flag_file_data)
     print("#########################")
 
+def generate_flag_status_msgs(filename):
+    sig = "//CODEGEN_FLAG_STATUS"
+    template = """
+if (strcmp(flag_name, "flag_%i") == 0){
+    if (current_flag == 1){
+        strcpy(flag_%i_value, "Flag %i: Complete");
+    }
+    else {
+        strcpy(flag_%i_value, "Flag %i: Incomplete");
+    }
+    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_FLAG_%i]+1, sizeof(flag_%i_value)-1, (uint8_t *)flag_%i_value);
+}
+"""
+    code_gen = sig
+    for i in range(len(flag_file_data)):
+        code_gen += template % (i, i, i, i, i, i, i, i)
+    f = open(filename,'r')
+    filedata = f.read()
+    f.close()
+    newdata = filedata.replace(sig,code_gen)
+    f = open(filename,'w')
+    f.write(newdata)
+    f.close()
+
+
 def generate_header_flag_idx(filename):
     sig = "//CODEGEN_HEADER_FLAG_IDX"
     template = """
@@ -264,5 +289,6 @@ if __name__ == "__main__":
     generate_flag_read_values(dashboard_file + ".c")
     generate_flag_declarations(dashboard_file + ".c")
     generate_flag_validate_conditional(dashboard_file + ".c")
+    generate_flag_status_msgs(dashboard_file + ".c")
     generate_main_gatt_method_names(ble_ctf_dir)
     generate_app_main(ble_ctf_dir, dashboard)
