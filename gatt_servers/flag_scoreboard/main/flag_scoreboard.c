@@ -467,6 +467,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             if (create_attr_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "create attr table failed, error code = %x", create_attr_ret);
             }
+            set_current_score();
         }
        	    break;
         case ESP_GATTS_READ_EVT:
@@ -488,30 +489,38 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 memcpy(writeData, param->write.value, 20); 
                 
                 //Flag Submission Logic
-                if (param->write.handle == 0x002e){
+                if (param->write.handle == blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_SUBMIT]+1){
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG SUBMISSION %s", writeData);
                     validate_flag();
+                    set_current_score();
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_SUBMIT]+1, sizeof(flags_submit_value)-1, (uint8_t *)flags_submit_value);
                 }
-
+                
                 //Load New Flag GATT Server Logic
                 //test: sudo bleah -b 80:7D:3A:C4:1C:8A -n 0x0030 -d 0x0100
-                if (param->write.handle == 0x0030 && param->write.len == 2){
-                    ESP_LOGI(GATTS_TABLE_TAG, "LOAD NEW FLAG EVT");
-                    uint16_t descr_value = param->write.value[0]<<8 |param->write.value[1];
-                    if (descr_value < int_total_flags && descr_value > 0){ 
-                        ESP_LOGI(GATTS_TABLE_TAG, "LOAD NEW FLAG GATT %d", descr_value);
-                        goto_flag(descr_value); 
-                        ESP_LOGI(GATTS_TABLE_TAG, "RSETTING SERVER AND LOADING FLAG_%d", descr_value);
-                        esp_restart();
+                if (param->write.handle == blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_WARP]+1){
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_WARP]+1, sizeof(warp_value)-1, (uint8_t *)warp_value);
+                    if (param->write.len == 2) {
+                        ESP_LOGI(GATTS_TABLE_TAG, "LOAD NEW FLAG EVT");
+                        uint16_t descr_value = param->write.value[0]<<8 |param->write.value[1];
+                        if (descr_value < int_total_flags && descr_value > 0){ 
+                            ESP_LOGI(GATTS_TABLE_TAG, "LOAD NEW FLAG GATT %d", descr_value);
+                            goto_flag(descr_value); 
+                            ESP_LOGI(GATTS_TABLE_TAG, "RSETTING SERVER AND LOADING FLAG_%d", descr_value);
+                            esp_restart();
+                        }
                     }
                 }
 
                 //Reset Flag Values
-                if (param->write.handle == 0x0032 && param->write.len == 3){
-                    uint32_t descr_value = param->write.value[0]<<16 |param->write.value[1]<<8 |param->write.value[2];
-                    if (descr_value == 0xC1EA12){
-                        ESP_LOGI(GATTS_TABLE_TAG, "RESETTING ALL FLAGS");
-                        reset_flags();
+                if (param->write.handle == blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_RESET]+1){
+                    esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_WRITE_RESET]+1, sizeof(reset_value)-1, (uint8_t *)reset_value);
+                    if (param->write.len == 3){
+                        uint32_t descr_value = param->write.value[0]<<16 |param->write.value[1]<<8 |param->write.value[2];
+                        if (descr_value == 0xC1EA12){
+                            ESP_LOGI(GATTS_TABLE_TAG, "RESETTING ALL FLAGS");
+                            reset_flags();
+                        }
                     }
                 }
 
