@@ -25,7 +25,7 @@
 #define HEART_PROFILE_NUM                         1
 #define HEART_PROFILE_APP_IDX                     0
 #define ESP_HEART_RATE_APP_ID                     0x55
-#define EXCAMPLE_DEVICE_NAME                      "BLECTF_F2"
+#define EXCAMPLE_DEVICE_NAME                      "FLAG_XX"
 #define HEART_RATE_SVC_INST_ID                    0
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 100

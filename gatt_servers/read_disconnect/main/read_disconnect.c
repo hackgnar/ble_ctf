@@ -32,7 +32,7 @@
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
 #define ESP_APP_ID                  0x55
-#define SAMPLE_DEVICE_NAME          "BLECTF_F1"
+#define SAMPLE_DEVICE_NAME          "FLAG_XX"
 #define SVC_INST_ID                 0
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 100
@@ -58,7 +58,7 @@ static uint8_t raw_adv_data[] = {
         0x03, 0x03, 0xFF, 0x00,
         /* device name (first number is the length) */
 	//TODO generate flag name
-        0x0a, 0x09, 'B', 'L', 'E', 'C', 'T', 'F', '_', 'F', '1'
+        0x08, 0x09, 'F','L','A','G','_','X','X'
 
 };
 static uint8_t raw_scan_rsp_data[] = {

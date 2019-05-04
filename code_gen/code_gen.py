@@ -7,7 +7,28 @@ import sys
 
 flag_file_data = {}
 
-#todo: codegen gatt devicenames
+def generate_devicename(proj_dir):
+    main_dir = os.path.join(proj_dir, "main")
+    sig1 = "FLAG_XX"
+    sig2 = "'F','L','A','G','_','X','X'"
+    for i in range(len(flag_file_data)):
+        if i == 0:
+            continue
+        flag_name = flag_file_data["flag_%s" % (str(i))]["gatt_name"]
+        dst = os.path.join(main_dir, flag_name)
+        dst_c = dst + ".c"
+        code_gen1 = "FLAG_%d" % (i)
+        code_gen2 = "'F','L','A','G','_','0','%d'" % (i)
+
+        f = open(dst_c,'r')
+        filedata = f.read()
+        f.close()
+        newdata = filedata.replace(sig1,code_gen1)
+        newdata = newdata.replace(sig2,code_gen2)
+        f = open(dst_c,'w')
+        f.write(newdata)
+        f.close()
+ 
 
 #todo: codegen flag values
 def generate_flag_values(proj_dir):
@@ -311,3 +332,4 @@ if __name__ == "__main__":
     generate_main_gatt_method_names(ble_ctf_dir)
     generate_app_main(ble_ctf_dir, dashboard)
     generate_flag_values(ble_ctf_dir)
+    generate_devicename(ble_ctf_dir)
