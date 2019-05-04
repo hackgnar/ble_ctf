@@ -9,3 +9,8 @@ COMPONENT_ADD_INCLUDEDIRS := components/include
 
 include $(IDF_PATH)/make/project.mk
 
+codegen:
+	rm -f $(PROJECT_PATH)/main/*c
+	rm -f $(PROJECT_PATH)/main/*h
+	rm -rf $(PROJECT_PATH)/build
+	python code_gen/code_gen.py $(PROJECT_PATH)

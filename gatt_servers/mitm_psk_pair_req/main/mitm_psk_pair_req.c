@@ -137,7 +137,8 @@ static const uint8_t heart_ctrl_point[1] = {0x00};
 /// Full HRS Database Description - Used to add attributes into the database
 
 static const char mitm_read_value[] = "no psk goodbye 👋";
-static const char mitm_flag_value[] = "flag value 2: 112345";
+
+static char flag_mitm_psk_pair_req_value[] = "12345678901234567890";
 
 static const esp_gatts_attr_db_t heart_rate_gatt_db[MITM_PSK_PAIR_REQ_IDX_NB] =
 {
@@ -179,7 +180,7 @@ static const esp_gatts_attr_db_t heart_rate_gatt_db[MITM_PSK_PAIR_REQ_IDX_NB] =
     // Heart Rate Control Point Characteristic Value
     [MITM_PSK_PAIR_REQ_IDX_HR_CTNL_PT_VAL]             =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&heart_rate_ctrl_point, ESP_GATT_PERM_WRITE_ENCRYPTED|ESP_GATT_PERM_READ_ENC_MITM,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(mitm_flag_value)-1, (uint8_t *)mitm_flag_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_mitm_psk_pair_req_value)-1, (uint8_t *)flag_mitm_psk_pair_req_value}},
 };
 
 static char *esp_key_type_to_str(esp_ble_key_type_t key_type)
@@ -507,6 +508,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 
 void app_main()
 {
+
+    //CODEGEN_FLAG_VALUES
+
     ESP_LOGI(GATTS_TABLE_TAG, "####### FLAG 2 ########");
     esp_err_t ret;
 

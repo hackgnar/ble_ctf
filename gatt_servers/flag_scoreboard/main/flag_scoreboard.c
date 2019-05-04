@@ -177,6 +177,8 @@ static const char reset_value[] = "Write 0xC1EA12 to reset all flags";
 //CODEGEN_FLAG_READ_VALUES
 static const char flag_xx_value[] = "Flag xx: Complete|Incomplete";
 
+static char flag_flag_scoreboard_value[] = "12345678901234567890";
+
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[FLAG_SCOREBOARD_IDX_NB] =
 {
@@ -436,7 +438,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
     switch (event) {
         case ESP_GATTS_REG_EVT:{
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_REG_EVT");
-            esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
+            //esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
+            esp_err_t set_dev_name_ret = esp_ble_gap_set_device_name(flag_flag_scoreboard_value);
             if (set_dev_name_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
             }
@@ -635,6 +638,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 void app_main()
 {
     //CODEGEN_TOTAL_FLAGS
+    
+
+    //CODEGEN_FLAG_VALUES
     
     ESP_LOGI(GATTS_TABLE_TAG, "######## LOADING FLAG SCOREBOARD ########");
     esp_err_t ret;

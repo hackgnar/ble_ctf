@@ -3,11 +3,32 @@ import csv
 import fileinput
 import shutil
 import os
+import sys
 
 flag_file_data = {}
 
-#todo: codegen flag values
 #todo: codegen gatt devicenames
+
+#todo: codegen flag values
+def generate_flag_values(proj_dir):
+    main_dir = os.path.join(proj_dir, "main")
+    for k, v in flag_file_data.iteritems():
+        sig = "//CODEGEN_FLAG_VALUES"
+        template = """
+strcpy(flag_%s_value, "%s");"""
+        code_gen = sig
+        code_gen += template % (v["gatt_name"], v["flag_value"])
+        
+        dst = os.path.join(main_dir, v["gatt_name"])
+        dst_c = dst + ".c"
+
+        f = open(dst_c,'r')
+        filedata = f.read()
+        f.close()
+        newdata = filedata.replace(sig,code_gen)
+        f = open(dst_c,'w')
+        f.write(newdata)
+        f.close()
 
 def generate_app_main(proj_dir, dashboard):
     main_dir = os.path.join(proj_dir, "main", dashboard)
@@ -111,9 +132,6 @@ def import_flag_file_data(filename):
             flag = "flag_" + str(i)
             flag_file_data[flag] = row
             i+=1
-    print("######### DEBUG #########")
-    print(flag_file_data)
-    print("#########################")
 
 def generate_flag_status_msgs(filename):
     sig = "//CODEGEN_FLAG_STATUS"
@@ -271,8 +289,8 @@ if (strcmp(writeData, "%s") == 0){
 
 if __name__ == "__main__":
     # user args
-    filename = "flag_config.csv"
-    ble_ctf_dir = "/home/ripper/src/ble_ctf"
+    filename = os.path.join(sys.argv[1], "code_gen","flag_config.csv")
+    ble_ctf_dir = sys.argv[1]
     dashboard = "flag_scoreboard" 
 
     # default args
@@ -292,3 +310,4 @@ if __name__ == "__main__":
     generate_flag_status_msgs(dashboard_file + ".c")
     generate_main_gatt_method_names(ble_ctf_dir)
     generate_app_main(ble_ctf_dir, dashboard)
+    generate_flag_values(ble_ctf_dir)

@@ -162,8 +162,8 @@ static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP
 // start ctf data vars
 static char writeData[100];
 static const char scan_blocker_value[] = "goodbye 👋";
-//TODO generage flag value
-static const char flag_value[] = "flag value 1: 8675309";
+
+static char flag_read_disconnect_value[] = "12345678901234567890";
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[READ_DISCONNECT_HRS_IDX_NB] =
@@ -191,7 +191,7 @@ static const esp_gatts_attr_db_t gatt_db[READ_DISCONNECT_HRS_IDX_NB] =
     /* FLAG Characteristic Value */
     [READ_DISCONNECT_IDX_CHAR_VAL_READ_FLAG]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAG, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_value)-1, (uint8_t *)flag_value}},
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_read_disconnect_value)-1, (uint8_t *)flag_read_disconnect_value}},
 
 };
 
@@ -420,6 +420,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 //TODO: generate flag name
 void app_main()
 {
+
+    //CODEGEN_FLAG_VALUES
+
     ESP_LOGI(GATTS_TABLE_TAG, "######## FLAG 1 ########");
     esp_err_t ret;
 
