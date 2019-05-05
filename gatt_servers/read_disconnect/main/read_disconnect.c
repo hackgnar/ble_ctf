@@ -151,6 +151,7 @@ static struct gatts_profile_inst blectf_profile_tab[PROFILE_NUM] = {
 static const uint16_t GATTS_SERVICE_UUID_TEST                   = 0x00FF;
 static const uint16_t GATTS_CHAR_UUID_READ_BLOCKER              = 0xFF01;
 static const uint16_t GATTS_CHAR_UUID_READ_FLAG                 = 0xFF02;
+static const uint16_t GATTS_CHAR_UUID_WRITE_WARP                = 0xFF03;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -162,6 +163,7 @@ static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP
 // start ctf data vars
 static char writeData[100];
 static const char scan_blocker_value[] = "goodbye 👋";
+static const char warp_value[] = "write here to goto to scoreboard";
 
 static char flag_read_disconnect_value[] = "12345678901234567890";
 
@@ -192,6 +194,17 @@ static const esp_gatts_attr_db_t gatt_db[READ_DISCONNECT_HRS_IDX_NB] =
     [READ_DISCONNECT_IDX_CHAR_VAL_READ_FLAG]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAG, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_read_disconnect_value)-1, (uint8_t *)flag_read_disconnect_value}},
+
+    /* WARP Characteristic Declaration */
+    [READ_DISCONNECT_IDX_CHAR_WRITE_WARP]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* WARP Characteristic Value */
+    [READ_DISCONNECT_IDX_CHAR_VAL_WRITE_WARP]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WRITE_WARP, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(warp_value)-1, (uint8_t *)warp_value}},
+
 
 };
 
@@ -313,6 +326,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 // store write data for flag checking
                 memset(writeData, 0, sizeof writeData);
                 memcpy(writeData, param->write.value, 20); 
+                
+                //warp back to scorebord
+                if (param->write.handle == blectf_handle_table[READ_DISCONNECT_IDX_CHAR_WRITE_WARP]+1){
+                    esp_restart();
+                }
             }
             else{
                 /* handle prepare write */

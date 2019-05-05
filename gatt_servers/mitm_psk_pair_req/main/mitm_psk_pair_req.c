@@ -111,6 +111,7 @@ static struct gatts_profile_inst heart_rate_profile_tab[HEART_PROFILE_NUM] = {
 
 /// Heart Rate Sensor Service
 static const uint16_t heart_rate_svc = ESP_GATT_UUID_HEART_RATE_SVC;
+static char writeData[100];
 
 #define CHAR_DECLARATION_SIZE   (sizeof(uint8_t))
 static const uint16_t primary_service_uuid = ESP_GATT_UUID_PRI_SERVICE;
@@ -126,17 +127,23 @@ static const uint8_t heart_measurement_ccc[2] ={ 0x00, 0x00};
 
 
 /// Heart Rate Sensor Service -Body Sensor Location characteristic, read
-static const uint16_t body_sensor_location_uuid = ESP_GATT_BODY_SENSOR_LOCATION;
+//static const uint16_t body_sensor_location_uuid = ESP_GATT_BODY_SENSOR_LOCATION;
+static const uint16_t body_sensor_location_uuid = 0xFF01;
 static const uint8_t body_sensor_loc_val[1] = {0x00};
 
 
 /// Heart Rate Sensor Service - Heart Rate Control Point characteristic, write&read
-static const uint16_t heart_rate_ctrl_point = ESP_GATT_HEART_RATE_CNTL_POINT;
+//static const uint16_t heart_rate_ctrl_point = ESP_GATT_HEART_RATE_CNTL_POINT;
+static const uint16_t heart_rate_ctrl_point = 0xFF02;
 static const uint8_t heart_ctrl_point[1] = {0x00};
+
+/// Heart Rate Sensor Service -Body Sensor Location characteristic, read
+static const uint16_t mitm_warp_uuid = 0xFF03;
 
 /// Full HRS Database Description - Used to add attributes into the database
 
-static const char mitm_read_value[] = "no psk goodbye 👋";
+static const char mitm_read_value[] = "Brute force my pin";
+static char warp_value[] = "Write to goto scoreboard";
 
 static char flag_mitm_psk_pair_req_value[] = "12345678901234567890";
 
@@ -147,21 +154,6 @@ static const esp_gatts_attr_db_t heart_rate_gatt_db[MITM_PSK_PAIR_REQ_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(heart_rate_svc), (uint8_t *)&heart_rate_svc}},
 
-    // Heart Rate Measurement Characteristic Declaration
-    [MITM_PSK_PAIR_REQ_IDX_HR_MEAS_CHAR]            =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE,CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_notify}},
-
-    // Heart Rate Measurement Characteristic Value
-    [MITM_PSK_PAIR_REQ_IDX_HR_MEAS_VAL]             =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&heart_rate_meas_uuid, ESP_GATT_PERM_READ,
-      HRPS_HT_MEAS_MAX_LEN,0, NULL}},
-
-    // Heart Rate Measurement Characteristic - Client Characteristic Configuration Descriptor
-    [MITM_PSK_PAIR_REQ_IDX_HR_MEAS_NTF_CFG]        =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_client_config_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
-      sizeof(uint16_t),sizeof(heart_measurement_ccc), (uint8_t *)heart_measurement_ccc}},
-
     // Body Sensor Location Characteristic Declaration
     [MITM_PSK_PAIR_REQ_IDX_BOBY_SENSOR_LOC_CHAR]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
@@ -169,18 +161,30 @@ static const esp_gatts_attr_db_t heart_rate_gatt_db[MITM_PSK_PAIR_REQ_IDX_NB] =
 
     // Body Sensor Location Characteristic Value
     [MITM_PSK_PAIR_REQ_IDX_BOBY_SENSOR_LOC_VAL]   =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&body_sensor_location_uuid, ESP_GATT_PERM_READ_ENC_MITM,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&body_sensor_location_uuid, ESP_GATT_PERM_READ,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(mitm_read_value)-1, (uint8_t *)mitm_read_value}},
 
     // Heart Rate Control Point Characteristic Declaration
     [MITM_PSK_PAIR_REQ_IDX_HR_CTNL_PT_CHAR]          =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE,CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+      CHAR_DECLARATION_SIZE,CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
     // Heart Rate Control Point Characteristic Value
     [MITM_PSK_PAIR_REQ_IDX_HR_CTNL_PT_VAL]             =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&heart_rate_ctrl_point, ESP_GATT_PERM_WRITE_ENCRYPTED|ESP_GATT_PERM_READ_ENC_MITM,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&heart_rate_ctrl_point, ESP_GATT_PERM_READ_ENC_MITM,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_mitm_psk_pair_req_value)-1, (uint8_t *)flag_mitm_psk_pair_req_value}},
+
+    // warp - return to scoreboard
+    [MITM_PSK_PAIR_REQ_IDX_WRITE_WARP_CHAR]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE,CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    // warp - return to scoreboard
+    [MITM_PSK_PAIR_REQ_IDX_WRITE_WARP_VAL]   =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&mitm_warp_uuid, ESP_GATT_PERM_READ|ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(warp_value)-1, (uint8_t *)warp_value}},
+
+
 };
 
 static char *esp_key_type_to_str(esp_ble_key_type_t key_type)
@@ -419,7 +423,21 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event,
             break;
         case ESP_GATTS_WRITE_EVT:
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_WRITE_EVT, write value:");
-            esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+
+            if (!param->write.is_prep){
+                ESP_LOGI(GATTS_TABLE_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
+                esp_log_buffer_hex(GATTS_TABLE_TAG, param->write.value, param->write.len);
+                
+                // store write data for flag checking
+                memset(writeData, 0, sizeof writeData);
+                memcpy(writeData, param->write.value, 20); 
+                
+                //warp back to scorebord
+                if (param->write.handle == heart_rate_handle_table[MITM_PSK_PAIR_REQ_IDX_WRITE_WARP_CHAR]+1){
+                    esp_restart();
+                }
+            }
+
             break;
         case ESP_GATTS_EXEC_WRITE_EVT:
             break;
@@ -586,7 +604,7 @@ void app_main()
     uint8_t init_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
     uint8_t rsp_key = ESP_BLE_ENC_KEY_MASK | ESP_BLE_ID_KEY_MASK;
     //set static passkey
-    uint32_t passkey = 112345;
+    uint32_t passkey = 6660;
     uint8_t auth_option = ESP_BLE_ONLY_ACCEPT_SPECIFIED_AUTH_ENABLE;
     uint8_t oob_support = ESP_BLE_OOB_ENABLE;
     esp_ble_gap_set_security_param(ESP_BLE_SM_SET_STATIC_PASSKEY, &passkey, sizeof(uint32_t));

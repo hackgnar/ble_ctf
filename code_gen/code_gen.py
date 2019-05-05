@@ -159,7 +159,7 @@ def generate_flag_status_msgs(filename):
     template = """
 if (strcmp(flag_name, "flag_%i") == 0){
     if (current_flag == 1){
-        strcpy(flag_%i_value, "Flag %i: Complete");
+        strcpy(flag_%i_value, "Flag %i: Complete  ");
     }
     else {
         strcpy(flag_%i_value, "Flag %i: Incomplete");
@@ -292,7 +292,7 @@ def generate_flag_validate_conditional(filename):
     template = """
 if (strcmp(writeData, "%s") == 0){
     err = nvs_set_i32(my_handle, "flag_%d", 1);
-    strcpy(flag_%d_value, "Flag %d: Complete");
+    strcpy(flag_%d_value, "Flag %d: Complete  ");
     esp_ble_gatts_set_attr_value(blectf_handle_table[FLAG_SCOREBOARD_IDX_CHAR_READ_FLAG_%d]+1, sizeof(flag_%d_value)-1, (uint8_t *)flag_%d_value);
 }"""
     code_gen = sig
