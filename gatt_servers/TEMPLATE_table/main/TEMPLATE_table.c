@@ -32,7 +32,7 @@
 #define PROFILE_NUM                 1
 #define PROFILE_APP_IDX             0
 #define ESP_APP_ID                  0x55
-#define SAMPLE_DEVICE_NAME          "BLECTF_Flag_xx"
+#define SAMPLE_DEVICE_NAME          "FLAG_XX"
 #define SVC_INST_ID                 0
 
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 100
@@ -58,7 +58,7 @@ static uint8_t raw_adv_data[] = {
         0x03, 0x03, 0xFF, 0x00,
         /* device name (first number is the length) */
 	//TODO generate flag name
-        0x0f, 0x09, 'B', 'L', 'E', 'C', 'T', 'F', '_', 'F', 'l', 'a', 'g', '_', 'x', 'x'
+        0x08, 0x09, 'F','L','A','G','_','X','X'
 
 };
 static uint8_t raw_scan_rsp_data[] = {
@@ -149,7 +149,9 @@ static struct gatts_profile_inst blectf_profile_tab[PROFILE_NUM] = {
 
 /* Service */
 static const uint16_t GATTS_SERVICE_UUID_TEST                   = 0x00FF;
-static const uint16_t GATTS_CHAR_UUID_READ_SAMPLE              = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_READ_DOCS                 = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_READ_FLAG                 = 0xFF01;
+static const uint16_t GATTS_CHAR_UUID_WRITE_WARP                = 0xFF01;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -160,7 +162,10 @@ static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP
 
 // start ctf data vars
 static char writeData[100];
-static const char sample_value[] = "flag xx";
+static const char docs_value[] = "TEMPLATE GATT READ";
+static const char warp_value[] = "write here to goto to scoreboard";
+
+static char flag_TEMPLATE_table_value[] = "12345678901234567890";
 
 /* Full Database Description - Used to add attributes into the database */
 static const esp_gatts_attr_db_t gatt_db[TEMPLATE_TABLE_IDX_NB] =
@@ -170,16 +175,36 @@ static const esp_gatts_attr_db_t gatt_db[TEMPLATE_TABLE_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&primary_service_uuid, ESP_GATT_PERM_READ,
       sizeof(uint16_t), sizeof(GATTS_SERVICE_UUID_TEST), (uint8_t *)&GATTS_SERVICE_UUID_TEST}},
 
-    /* Sample Characteristic Declaration */
-    [TEMPLATE_TABLE_IDX_CHAR_READ_SAMPLE]      =
+    /* Documentation Characteristic Declaration */
+    [TEMPLATE_TABLE_IDX_CHAR_READ_DOCS]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
       CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
-    /* Sample Characteristic Value */
-    [TEMPLATE_TABLE_IDX_CHAR_VAL_READ_SAMPLE]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_SAMPLE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(sample_value)-1, (uint8_t *)sample_value}},
+    /* Documentation Characteristic Value */
+    [TEMPLATE_TABLE_IDX_CHAR_VAL_READ_DOCS]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_DOCS, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(docs_value)-1, (uint8_t *)docs_value}},
     
+    /* Flag Characteristic Declaration */
+    [TEMPLATE_TABLE_IDX_CHAR_READ_FLAG]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* Flag Characteristic Value */
+    [TEMPLATE_TABLE_IDX_CHAR_VAL_READ_FLAG]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_READ_FLAG, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_TEMPLATE_table_value)-1, (uint8_t *)flag_TEMPLATE_table_value}},
+    
+    /* Warp Characteristic Declaration */
+    [TEMPLATE_TABLE_IDX_CHAR_WRITE_WARP]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+
+    /* Warp Characteristic Value */
+    [TEMPLATE_TABLE_IDX_CHAR_VAL_WRITE_WARP]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_WRITE_WARP, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(warp_value)-1, (uint8_t *)warp_value}},
+
 };
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -297,6 +322,11 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 // store write data for flag checking
                 memset(writeData, 0, sizeof writeData);
                 memcpy(writeData, param->write.value, 20); 
+                
+                //warp back to scorebord
+                if (param->write.handle == blectf_handle_table[TEMPLATE_TABLE_IDX_CHAR_WRITE_WARP]+1){
+                    esp_restart();
+                }
             }
             else{
                 /* handle prepare write */
@@ -404,6 +434,9 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 //TODO: generate flag name
 void app_main()
 {
+
+    //CODEGEN_FLAG_VALUES
+
     ESP_LOGI(GATTS_TABLE_TAG, "######## FLAG 1 ########");
     esp_err_t ret;
 
