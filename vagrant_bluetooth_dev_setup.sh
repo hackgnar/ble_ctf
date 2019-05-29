@@ -5,7 +5,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y git python-setuptools libbluet
 mkdir $SRC_DIR
 
 cd $SRC_DIR
-git clone https://github.com/evilsocket/bleah.git
+git clone https://github.com/hackgnar/bleah.git
 git clone https://github.com/IanHarvey/bluepy.git
 git clone https://github.com/greatscottgadgets/libbtbb.git
 git clone https://github.com/greatscottgadgets/ubertooth.git

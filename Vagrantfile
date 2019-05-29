@@ -15,37 +15,37 @@ Vagrant.configure("2") do |config|
       "--vendorid","0x0a12",
       "--productid","0x0001"
       ]
-    vb.customize ["usbfilter", "add", "0", 
-      "--target", :id, 
-      "--name", "ubertooth",
-      "--vendorid","0x1d50",
-      "--productid","0x6002"
-      ]
-    vb.customize ["usbfilter", "add", "0", 
-      "--target", :id, 
-      "--name", "ubertooth_bootloader",
-      "--vendorid","0xffff",
-      "--productid","0x0004"
-      ]
+    #vb.customize ["usbfilter", "add", "0", 
+    #  "--target", :id, 
+    #  "--name", "ubertooth",
+    #  "--vendorid","0x1d50",
+    #  "--productid","0x6002"
+    #  ]
+    #vb.customize ["usbfilter", "add", "0", 
+    #  "--target", :id, 
+    #  "--name", "ubertooth_bootloader",
+    #  "--vendorid","0xffff",
+    #  "--productid","0x0004"
+    #  ]
 
-    vb.customize ["usbfilter", "add", "0", 
-      "--target", :id, 
-      "--name", "adafruit sniffer",
-      "--vendorid","0x0403",
-      "--productid","0x6015"
-      ]
-    vb.customize ["usbfilter", "add", "0", 
-      "--target", :id, 
-      "--name", "redbearlabs_nrf5",
-      "--vendorid","0x0d28",
-      "--productid","0x0204"
-      ]
-    vb.customize ["usbfilter", "add", "0", 
-      "--target", :id, 
-      "--name", "Jlink",
-      "--vendorid","0x1366",
-      "--productid","0x0101"
-      ]
+    #vb.customize ["usbfilter", "add", "0", 
+    #  "--target", :id, 
+    #  "--name", "adafruit sniffer",
+    #  "--vendorid","0x0403",
+    #  "--productid","0x6015"
+    #  ]
+    #vb.customize ["usbfilter", "add", "0", 
+    #  "--target", :id, 
+    #  "--name", "redbearlabs_nrf5",
+    #  "--vendorid","0x0d28",
+    #  "--productid","0x0204"
+    #  ]
+    #vb.customize ["usbfilter", "add", "0", 
+    #  "--target", :id, 
+    #  "--name", "Jlink",
+    #  "--vendorid","0x1366",
+    #  "--productid","0x0101"
+    #  ]
 
   end
   config.vm.provision "shell", path: "vagrant_bluetooth_dev_setup.sh"
