@@ -95,7 +95,7 @@ https://github.com/hackgnar/bleah
 
 ### Ghetto Gatttool Enumeration Script
 Running the following gatttool/bash script will get you output much like Bleah.  Its nice in case you have issues installing Bleah.
-<insert link>
+https://gist.github.com/hackgnar/c9fd9bbf5a96fdd0d43f9f3a8c4e7aeb
 
 ### Bettercap
 The Bettercap project has some bluetooth support.  Much like Bleah, its useful for visualizing GATT characteristics.
