@@ -19,7 +19,7 @@ To get setup, [read this documentation](docs/setup.md)
 Before you can submit flags, you have to discover the Bluetooth MAC address of your device.  Here are a couple example commands to help you find your device:
 
 Discover MAC using hcitool:   
-```` sudo hcitool blescan ````
+```` sudo hcitool lescan ````
 
 Discover MAC using bleah:   
 ```` sudo bleah ````
