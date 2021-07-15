@@ -26,7 +26,7 @@ esptool.py --chip esp32 --port /dev/ttyUSB0 \
 0x8000 build/partitions_singleapp.bin
 ```
 
-### Build Docker
+## Build From Docker
 
 If you want to compile the code yourself, but are having issues setting up an environment, you can use the docker build method.  This will provide you with a clean uniform build environment each time.  To build from docker do the following:
 
@@ -61,7 +61,7 @@ esptool.py --chip esp32 --port /dev/ttyUSB0 \
 0x8000 build/partitions_singleapp.bin
 ```
 
-### Build From Source
+## Build From Source
 
 Setup your esp32 build environment by following [this documentation](http://esp-idf.readthedocs.io/en/latest/get-started/#setup-toolchain).  Once complete, you can build and flash the code from this repository just the same as you would from the example bluetooth programs in that project which are located in ```/esp-idf/examples/bluetooth/```
 
