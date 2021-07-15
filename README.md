@@ -10,7 +10,7 @@ In order to set up the CTF you will need the following:
 3. A Linux box (OSX/Win + Linux VM works) with a bluetooth controller or a bluetooth usb dongle ([I ❤️ UD100s](https://www.amazon.com/Sena-UD100-Bluetooth-Class1-Adapter/dp/B01BHD7WR2/ref=cm_cr_arp_d_product_top?ie=UTF8))
 4. Bluetooth tools such as Bluez tools (hcitool, gatttool, etc) or [bleah](https://github.com/evilsocket/bleah)
 
-For instructions to flash the provided pre-compiled firmware, build your own firmware, of flash the firmware [read this documentation](docs/setup.md)
+For instructions to compile/flash your own firmware or flash the provided pre-compiled firmware [read this documentation](docs/setup.md)
 
 ## Flags
 
