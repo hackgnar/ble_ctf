@@ -1,4 +1,4 @@
-FROM espressif/idf as dev
+FROM espressif/idf:v4.3.3 as dev
 RUN mkdir /ble_ctf
 COPY ./main /ble_ctf/main
 COPY ./Makefile /ble_ctf/
