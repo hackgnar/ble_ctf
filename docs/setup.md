@@ -32,33 +32,32 @@ If you want to compile the code yourself, but are having issues setting up an en
 
 Build your base docker image and compile the code
 ```
-docker build -t blectf:v1 .
+docker build -t blectf .
 ```
 
 Start up a docker instance to pull out the binaries you compiled
 ```
-docker run blectf:v1
+docker run -it -v ./:/ble_ctf blectf
 ```
 
-Copy the build from your docker instance
+Setup and build from your docker instance. Make sure to enable bluetooth in your menuconfig (Component config -> Bleutooth).
 ```
-docker cp <instance_name>:/ble_ctf/build .
+cd /ble_ctf
+idf.py set-target esp32
+idf.py menuconfig
+idf.py build
 ```
 
 Shutdown and kill your docker
 ```
-docker stop <instance_name>
-docker rm <instance_name>
+exit
+docker stop blectf
+docker rm blectf
 ```
 
 Flash the firmware you built (you will need [esptool](https://github.com/espressif/esptool) installed)
 ```
-esptool.py --chip esp32 --port /dev/ttyUSB0 \
---baud 115200 --before default_reset --after hard_reset write_flash \
--z --flash_mode dio --flash_freq 40m --flash_size detect \
-0x1000 build/bootloader/bootloader.bin \
-0x10000 build/gatt_server_service_table_demo.bin \
-0x8000 build/partitions_singleapp.bin
+esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size 2MB --flash_freq 40m 0x1000 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/ble_ctf.bin
 ```
 
 ## Build From Source

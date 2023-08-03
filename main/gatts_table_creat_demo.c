@@ -189,8 +189,8 @@ static const uint8_t char_prop_read_write_notify   = ESP_GATT_CHAR_PROP_BIT_WRIT
 static const uint8_t char_prop_read_write_indicate   = ESP_GATT_CHAR_PROP_BIT_WRITE |ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_INDICATE;
 static const uint8_t char_prop_read_write   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ;
 static const uint8_t char_prop_crazy   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT_CHAR_PROP_BIT_READ | ESP_GATT_CHAR_PROP_BIT_EXT_PROP | ESP_GATT_CHAR_PROP_BIT_BROADCAST |  ESP_GATT_CHAR_PROP_BIT_NOTIFY ;
-static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
-static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
+//static const uint8_t heart_measurement_ccc[2]      = {0x00, 0x00};
+//static const uint8_t char_value[4]                 = {0x11, 0x22, 0x33, 0x44};
 
 // start ctf data vars
 static char writeData[100];
@@ -671,7 +671,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             ESP_LOGI(GATTS_TABLE_TAG, "ESP_GATTS_READ_EVT");
             read_counter += 1;
             //set gpio
-            gpio_pad_select_gpio(BLINK_GPIO);
+            esp_rom_gpio_pad_select_gpio(BLINK_GPIO);
             /* Set the GPIO as a push/pull output */
             gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
             gpio_set_level(BLINK_GPIO, 1);
