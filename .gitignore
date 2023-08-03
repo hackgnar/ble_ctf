@@ -1,7 +1,7 @@
 build/*
 !build/bootloader/bootloader.bin
-!build/gatt_server_service_table_demo.bin
-!build/partitions_singleapp.bin
+!build/partition_table/partition-table.bin
+!build/ble_ctf.bin
 sdkconfig
 sdkconfig.old
 *.swp
