@@ -18,12 +18,7 @@ cd ble_ctf
 
 Flash the pre-compiled binaries
 ```
-esptool.py --chip esp32 --port /dev/ttyUSB0 \
---baud 115200 --before default_reset --after hard_reset write_flash \
--z --flash_mode dio --flash_freq 40m --flash_size detect \
-0x1000 build/bootloader/bootloader.bin \
-0x10000 build/gatt_server_service_table_demo.bin \
-0x8000 build/partitions_singleapp.bin
+esptool.py -p (PORT) -b 460800 --before default_reset --after hard_reset --chip esp32  write_flash --flash_mode dio --flash_size 2MB --flash_freq 40m 0x1000 build/bootloader/bootloader.bin 0x8000 build/partition_table/partition-table.bin 0x10000 build/ble_ctf.bin
 ```
 
 ## Build From Docker
@@ -67,8 +62,8 @@ Setup your esp32 build environment by following [this documentation](http://esp-
 If you need a reminder, do the following once you set up your whole esp build environment from the link above.
 ````
 cd ble_ctf
-make menuconfig   # set your serial device in bla -> bla -> bla
-make
-# plug in your esp32 to usb
-make flash
+idf.py set-target esp32  # set your serial device in bla -> bla -> bla
+idf.py menuconfig
+idf.py build
+idf.py flash
 ````
