@@ -32,7 +32,7 @@ docker build -t blectf .
 
 Start up a docker instance to pull out the binaries you compiled
 ```
-docker run -it -v ./:/ble_ctf blectf
+docker run -it -v ./:/ble_ctf --name blectf blectf
 ```
 
 Setup and build from your docker instance. Make sure to enable bluetooth in your menuconfig (Component config -> Bleutooth).
