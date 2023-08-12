@@ -195,7 +195,7 @@ static const uint8_t char_prop_crazy   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT
 // start ctf data vars
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
-static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
+static uint8_t score_read_value[34] = "Score: 0/20 [FFFFFFFFFFFFFFFFFFFF]";
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
@@ -499,6 +499,7 @@ static void set_score()
     
     snprintf((char * restrict)&score_read_value[6], 3, "%2d", score);
     score_read_value[8] = '/'; // overwrite the null terminator
+    strncpy((char * restrict)&score_read_value[13], flag_state, 20);
     esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_SCORE]+1, sizeof score_read_value, score_read_value);
 }
 
