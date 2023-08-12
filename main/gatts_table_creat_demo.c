@@ -218,7 +218,6 @@ static const uint8_t flag_read_value[16] = {'W','r','i','t','e', ' ', 'F', 'l','
 int read_alot_counter = 0;
 int read_counter = 0;
 int score = 0;
-static char string_score[10] = "0";
 int BLINK_GPIO=2;
 int indicate_handle_state = 0;
 int send_response=0;
@@ -498,13 +497,8 @@ static void set_score()
         }
     }
     
-    itoa(score, string_score, 10);
-    for (int i = 0 ; i < strlen(string_score) ; ++i)
-    {
-        if (strlen(string_score) == 1){
-            score_read_value[7] = ' ';}
-        score_read_value[6+i] = string_score[i];
-    }
+    snprintf((char * restrict)&score_read_value[6], 3, "%2d", score);
+    score_read_value[8] = '/'; // overwrite the null terminator
     esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_SCORE]+1, sizeof score_read_value, score_read_value);
 }
 
