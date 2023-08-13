@@ -830,16 +830,16 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //gimmi from the hints docs or this source
                         flag_state[0] = 'T';
                     }
-                    if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
-                        //attributes device name
-                        flag_state[1] = 'T';
-                    }
                     if (strcmp(writeData,"d205303e099ceff44835") == 0){
                         //simple read
-                        flag_state[2] = 'T';
+                        flag_state[1] = 'T';
                     }
                     if (strcmp(writeData,"5cd56d74049ae40f442e") == 0){
                         //md5 of device name
+                        flag_state[2] = 'T';
+                    }
+                    if (strcmp(writeData,"2b00042f7481c7b056c4") == 0){
+                        //attributes device name
                         flag_state[3] = 'T';
                     }
                     if (strcmp(writeData,"3873c0270763568cf7aa") == 0){
