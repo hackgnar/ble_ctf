@@ -39,7 +39,7 @@ Submit using gatttool:
 ```` gatttool -b de:ad:be:ef:be:f1 --char-write-req -a 0x002c -n $(echo -n "some flag value"|xxd -ps) ````
 
 Submit using bettercap (requires ```` > ble.recon on ```` first):  
-```` > ble.write de:ad:be:ef:be:f1 ff02 3563643536643734303439616534306634343265636530333663366634663036 ````
+```` > ble.write de:ad:be:ef:be:f1 ff02 "some flag value" ````
 
 ### Flag Hints
 | Flag | Description | Hint |
