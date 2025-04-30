@@ -179,7 +179,6 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_MTU                  = 0xFF13;
 static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
 static const uint16_t GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY        = 0xFF15;
 static const uint16_t GATTS_CHAR_UUID_FLAG_CRAZY                = 0xFF16;
-static const uint16_t GATTS_CHAR_UUID_FLAG_TWITTER              = 0xFF17;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -195,7 +194,7 @@ static const uint8_t char_prop_crazy   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT
 
 // start ctf data vars
 static char writeData[100];
-static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
+static char flag_state[19] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
 static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
@@ -475,16 +474,6 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     [IDX_CHAR_VAL_FLAG_CRAZY]  =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_CRAZY, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(crazy_value)-1, (uint8_t *)crazy_value}},
-
-    /* FLAG twitter Characteristic Declaration */
-    [IDX_CHAR_FLAG_TWITTER]      =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
-
-    /* FLAG twitter Characteristic Value */
-    [IDX_CHAR_VAL_FLAG_TWITTER]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_TWITTER, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(twitter_value)-1, (uint8_t *)twitter_value}},
 
 };
 
@@ -920,10 +909,6 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     if (strcmp(writeData,"fbb966958f07e4a0cc48") == 0){
                         //hidden notify
                         flag_state[18] = 'T';
-                    }
-                    if (strcmp(writeData,"d953bfb9846acc2e15ee") == 0){
-                        //final flag
-                        flag_state[19] = 'T';
                     }
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
