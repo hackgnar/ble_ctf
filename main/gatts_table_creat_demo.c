@@ -239,7 +239,7 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
 
     /* SCORE Characteristic Value */
     [IDX_CHAR_VAL_SCORE]  =
-    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_SCORE, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_SCORE, ESP_GATT_PERM_READ,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(score_read_value), (uint8_t *)score_read_value}},
     
     /* FLAG Characteristic Declaration */
