@@ -25,6 +25,7 @@
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
 #include "esp_bt_main.h"
+#include "esp_mac.h"
 #include "gatts_table_creat_demo.h"
 #include "esp_gatt_common_api.h"
 
@@ -65,7 +66,7 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name (first number is the length) */
-        0x07, 0x09, 'B', 'L', 'E', 'C', 'T', 'F'
+        0x14, 0x09, 'B', 'L', 'E', 'C', 'T', 'F', '_', 'A', 'B', 'C', 'D', 'E', 'F', '1', '2', '3', '4', '5', '6'
 
 };
 static uint8_t raw_scan_rsp_data[] = {
@@ -637,6 +638,19 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
             }
     #ifdef CONFIG_SET_RAW_ADV_DATA
+            // Update the name of the BLE device based on the mac address
+            uint8_t bt_mac[6];
+            esp_err_t read_mac = esp_read_mac(bt_mac, ESP_MAC_BT);
+            if (read_mac){
+              ESP_LOGE(GATTS_TABLE_TAG, "read bt mac failed, error code = %x", read_mac);
+            }
+
+            // Convert to ascii string and insert into raw_adv_data + 19 (location of the ABCDEF123456 text
+            for (size_t i = 0; i < 6; ++i) {
+                sprintf((char*)raw_adv_data + 19 + 2 * i, "%02X", bt_mac[i]);
+            }
+
+
             esp_err_t raw_adv_ret = esp_ble_gap_config_adv_data_raw(raw_adv_data, sizeof(raw_adv_data));
             if (raw_adv_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "config raw adv data failed, error code = %x ", raw_adv_ret);
