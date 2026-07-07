@@ -25,6 +25,8 @@
 #include "esp_gap_ble_api.h"
 #include "esp_gatts_api.h"
 #include "esp_bt_main.h"
+#include "esp_bt_device.h"
+#include "mbedtls/md5.h"
 #include "gatts_table_creat_demo.h"
 #include "esp_gatt_common_api.h"
 
@@ -65,7 +67,9 @@ static uint8_t raw_adv_data[] = {
         /* service uuid */
         0x03, 0x03, 0xFF, 0x00,
         /* device name (first number is the length) */
-        0x07, 0x09, 'B', 'L', 'E', 'C', 'T', 'F'
+        /* "BLECTF_XXXX" - the last four bytes are filled in at runtime with
+           the last two bytes of the device MAC (see blectf_set_adv_name_suffix) */
+        0x0c, 0x09, 'B', 'L', 'E', 'C', 'T', 'F', '_', 'X', 'X', 'X', 'X'
 
 };
 static uint8_t raw_scan_rsp_data[] = {
@@ -635,6 +639,47 @@ void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble
     prepare_write_env->prepare_len = 0;
 }
 
+/* Expected value for the "MD5 of Device Name" flag: md5 of the advertised
+   device name truncated to 20 chars. Because the name now carries a per-device
+   MAC suffix ("BLECTF_XXXX"), this is computed at runtime in
+   blectf_set_adv_name_suffix(). Defaults to md5("BLECTF") as a fallback. */
+static char device_name_md5[21] = "5cd56d74049ae40f442e";
+
+#ifdef CONFIG_SET_RAW_ADV_DATA
+/* Fill the "XXXX" placeholder at the end of raw_adv_data with the last two
+   bytes of the device MAC address as uppercase hex, producing "BLECTF_XXXX",
+   then recompute device_name_md5 for the resulting name. */
+static void blectf_set_adv_name_suffix(void)
+{
+    const uint8_t *mac = esp_bt_dev_get_address();
+    if (mac == NULL) {
+        ESP_LOGE(GATTS_TABLE_TAG, "could not read BT MAC for device name suffix");
+        return;
+    }
+    static const char hexu[] = "0123456789ABCDEF";
+    size_t n = sizeof(raw_adv_data);
+    raw_adv_data[n - 4] = hexu[(mac[4] >> 4) & 0x0f];
+    raw_adv_data[n - 3] = hexu[mac[4] & 0x0f];
+    raw_adv_data[n - 2] = hexu[(mac[5] >> 4) & 0x0f];
+    raw_adv_data[n - 1] = hexu[mac[5] & 0x0f];
+
+    /* The name AD field is the last field: [len][0x09][name...]; it follows
+       the fixed flags(3) + tx power(3) + service uuid(4) = 10 bytes. */
+    const size_t name_ad_offset = 10;
+    size_t name_len = raw_adv_data[name_ad_offset] - 1; /* AD len minus type byte */
+    const uint8_t *name = &raw_adv_data[name_ad_offset + 2];
+
+    unsigned char digest[16];
+    mbedtls_md5(name, name_len, digest);
+    static const char hexl[] = "0123456789abcdef";
+    for (int i = 0; i < 10; i++) { /* 10 bytes -> 20 hex chars */
+        device_name_md5[i * 2]     = hexl[(digest[i] >> 4) & 0x0f];
+        device_name_md5[i * 2 + 1] = hexl[digest[i] & 0x0f];
+    }
+    device_name_md5[20] = '\0';
+}
+#endif
+
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
 {
     switch (event) {
@@ -645,6 +690,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                 ESP_LOGE(GATTS_TABLE_TAG, "set device name failed, error code = %x", set_dev_name_ret);
             }
     #ifdef CONFIG_SET_RAW_ADV_DATA
+            blectf_set_adv_name_suffix();
             esp_err_t raw_adv_ret = esp_ble_gap_config_adv_data_raw(raw_adv_data, sizeof(raw_adv_data));
             if (raw_adv_ret){
                 ESP_LOGE(GATTS_TABLE_TAG, "config raw adv data failed, error code = %x ", raw_adv_ret);
@@ -851,8 +897,8 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                         //simple read
                         flag_state[2] = 'T';
                     }
-                    if (strcmp(writeData,"5cd56d74049ae40f442e") == 0){
-                        //md5 of device name
+                    if (strcmp(writeData,device_name_md5) == 0){
+                        //md5 of device name (computed at runtime from BLECTF_MAC)
                         flag_state[3] = 'T';
                     }
                     if (strcmp(writeData,"3873c0270763568cf7aa") == 0){
