@@ -219,7 +219,15 @@ int read_alot_counter = 0;
 int read_counter = 0;
 int score = 0;
 static char string_score[10] = "0";
-int BLINK_GPIO=2;
+/* LED indicator GPIO. The Seeed XIAO ESP32-C6 onboard user LED is on GPIO15
+ * and is active-low, whereas classic ESP32/S3 dev boards use GPIO2 active-high. */
+#if CONFIG_IDF_TARGET_ESP32C6
+#define BLINK_GPIO   GPIO_NUM_15
+#define BLINK_LED_ON 0
+#else
+#define BLINK_GPIO   GPIO_NUM_2
+#define BLINK_LED_ON 1
+#endif
 int indicate_handle_state = 0;
 int send_response=0;
 int check_send_response=0;
@@ -674,7 +682,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
             esp_rom_gpio_pad_select_gpio(BLINK_GPIO);
             /* Set the GPIO as a push/pull output */
             gpio_set_direction(BLINK_GPIO, GPIO_MODE_OUTPUT);
-            gpio_set_level(BLINK_GPIO, 1);
+            gpio_set_level(BLINK_GPIO, BLINK_LED_ON);
             if (read_counter > 1000){
                 esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG_READ_ALOT]+1, 20, (uint8_t *)"6ffcd214ffebdc0d069e");
             }
@@ -1078,7 +1086,9 @@ void app_main()
     }
     ESP_ERROR_CHECK( ret );
 
+#if defined(CONFIG_IDF_TARGET_ESP32)
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
+#endif
 
     esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
     ret = esp_bt_controller_init(&bt_cfg);
