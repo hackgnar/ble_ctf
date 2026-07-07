@@ -19,6 +19,7 @@
  #include "esp_system.h"
  #include "esp_log.h"
  #include "nvs_flash.h"
+ #include "nvs.h"
  #include "esp_bt.h"
  #include "driver/gpio.h"
 
@@ -183,6 +184,7 @@ static const uint16_t GATTS_CHAR_UUID_FLAG_WRITE_RESPONSE       = 0xFF14;
 static const uint16_t GATTS_CHAR_UUID_FLAG_HIDDEN_NOTIFY        = 0xFF15;
 static const uint16_t GATTS_CHAR_UUID_FLAG_CRAZY                = 0xFF16;
 static const uint16_t GATTS_CHAR_UUID_FLAG_TWITTER              = 0xFF17;
+static const uint16_t GATTS_CHAR_UUID_FLAG_STATUS              = 0xFF18;
 
 static const uint16_t primary_service_uuid         = ESP_GATT_UUID_PRI_SERVICE;
 static const uint16_t character_declaration_uuid   = ESP_GATT_UUID_CHAR_DECLARE;
@@ -200,6 +202,8 @@ static const uint8_t char_prop_crazy   = ESP_GATT_CHAR_PROP_BIT_WRITE | ESP_GATT
 static char writeData[100];
 static char flag_state[20] = {'F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F','F'};
 static uint8_t score_read_value[11] = {'S', 'c', 'o', 'r', 'e', ':', ' ', '0','/','2','0'};
+/* Human-readable per-flag status: "01:F 02:F 03:F ... 20:F" (99 bytes, T=solved, H=in progress, F=todo) */
+static uint8_t flag_status_value[99] = {0};
 static const char write_any_flag[] = "Write anything here";
 static const char write_ascii_flag[] = "Write the ascii value \"yo\" here";
 static const char write_hex_flag[] = "Write the hex value 0x07 here";
@@ -497,11 +501,63 @@ static const esp_gatts_attr_db_t gatt_db[HRS_IDX_NB] =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_TWITTER, ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
       GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(twitter_value)-1, (uint8_t *)twitter_value}},
 
+    /* FLAG STATUS Characteristic Declaration */
+    [IDX_CHAR_FLAG_STATUS]      =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
+
+    /* FLAG STATUS Characteristic Value - per-flag completion status, read-only */
+    [IDX_CHAR_VAL_FLAG_STATUS]  =
+    {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&GATTS_CHAR_UUID_FLAG_STATUS, ESP_GATT_PERM_READ,
+      GATTS_DEMO_CHAR_VAL_LEN_MAX, sizeof(flag_status_value), (uint8_t *)flag_status_value}},
+
 };
 
-static void set_score()
+/* Persist flag_state[] to NVS so progress survives a reboot/power-cycle. */
+static void save_flag_state()
 {
-    //set scores
+    nvs_handle_t nvs;
+    if (nvs_open("blectf", NVS_READWRITE, &nvs) == ESP_OK)
+    {
+        nvs_set_blob(nvs, "flagstate", flag_state, sizeof flag_state);
+        nvs_commit(nvs);
+        nvs_close(nvs);
+    }
+}
+
+/* Load persisted flag_state[] from NVS. Falls back to all 'F' if none saved. */
+static void load_flag_state()
+{
+    nvs_handle_t nvs;
+    size_t len = sizeof flag_state;
+    if (nvs_open("blectf", NVS_READONLY, &nvs) == ESP_OK)
+    {
+        if (nvs_get_blob(nvs, "flagstate", flag_state, &len) != ESP_OK || len != sizeof flag_state){
+            memset(flag_state, 'F', sizeof flag_state);
+        }
+        nvs_close(nvs);
+    }
+}
+
+/* Render the human-readable per-flag status buffer: "01:F 02:F ... 20:F". */
+static void update_flag_status_string()
+{
+    for (int i = 0 ; i < 20 ; ++i)
+    {
+        int p = i * 5;
+        flag_status_value[p]   = '0' + ((i + 1) / 10);
+        flag_status_value[p+1] = '0' + ((i + 1) % 10);
+        flag_status_value[p+2] = ':';
+        flag_status_value[p+3] = flag_state[i];
+        if (i < 19){
+            flag_status_value[p+4] = ' ';
+        }
+    }
+}
+
+/* Recompute score and render the "Score: N/20" buffer from flag_state[]. */
+static void update_score_string()
+{
     score = 0;
     for (int i = 0 ; i < 20 ; ++i)
     {
@@ -509,7 +565,7 @@ static void set_score()
             score += 1;
         }
     }
-    
+
     itoa(score, string_score, 10);
     for (int i = 0 ; i < strlen(string_score) ; ++i)
     {
@@ -517,7 +573,14 @@ static void set_score()
             score_read_value[7] = ' ';}
         score_read_value[6+i] = string_score[i];
     }
+}
+
+static void set_score()
+{
+    update_score_string();
+    update_flag_status_string();
     esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_SCORE]+1, sizeof score_read_value, score_read_value);
+    esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_VAL_FLAG_STATUS], sizeof flag_status_value, flag_status_value);
 }
 
 static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param)
@@ -884,6 +947,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
                     // make sure flag read value stays static
                     esp_ble_gatts_set_attr_value(blectf_handle_table[IDX_CHAR_FLAG]+1, sizeof flag_read_value, flag_read_value);
 
+                    // instructor reset: write "reset" to wipe all flag progress
+                    if (param->write.len == 5 && memcmp(param->write.value, "reset", 5) == 0){
+                        for (int i = 0 ; i < 20 ; ++i){
+                            flag_state[i] = 'F';
+                        }
+                        ESP_LOGI(GATTS_TABLE_TAG, "CTF flag state reset");
+                    }
+
                     //TODO: break this out into a function
                     if (strcmp(writeData,"12345678901234567890") == 0){
                         //gimmi from the hints docs or this source
@@ -968,6 +1039,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 
                     ESP_LOGI(GATTS_TABLE_TAG, "FLAG STATE = %s", flag_state);
                     set_score();
+                    save_flag_state();
                 }
                 /* send response when param->write.need_rsp is true*/
                 //if (param->write.need_rsp && send_response == 0){
@@ -1131,6 +1203,12 @@ void app_main()
         ret = nvs_flash_init();
     }
     ESP_ERROR_CHECK( ret );
+
+    /* Restore any persisted flag progress and render the read buffers before the
+     * GATT table captures their initial values. */
+    load_flag_state();
+    update_score_string();
+    update_flag_status_string();
 
 #if defined(CONFIG_IDF_TARGET_ESP32)
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
