@@ -1,3 +1,3 @@
 ## Flag 8 Hint
 
-Follow the instructions found from reading handle 0x0038.  Pay attention to handles here.  Keep in mind handles can be refrenced by integer or hex.  Most tools such as gratttool allow you to specify handles both ways.
+Follow the instructions found from reading handle 0x0038.  Pay attention to handles here.  Keep in mind handles can be refrenced by integer or hex.  Most tools such as gatttool allow you to specify handles both ways.

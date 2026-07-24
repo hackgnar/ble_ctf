@@ -15,5 +15,5 @@ if [ $(echo -n $j |cut -b5) == "1" ] || [ $(echo -n $j |cut -b6) == "1" ] ; then
 if [ $(echo -n $j |cut -b4) == "1" ]; then printf "NOTIFY "; else printf "       "; fi;
 if [ $(echo -n $j |cut -b3) == "1" ]; then printf "INDICATE "; else printf "         "; fi;
 printf ": "
-gratttool --char-read -b $mac -a $(echo -n $i|awk '{printf "%s : ", $1'}) |awk -F':' '{print $2}'|tr -d ' '|xxd -r -p; printf '\n' ;
-done < <(gratttool -b $mac --characteristics |awk  '{print $12, $7, $15}' |tr -d ',')
+gatttool --char-read -b $mac -a $(echo -n $i|awk '{printf "%s : ", $1'}) |awk -F':' '{print $2}'|tr -d ' '|xxd -r -p; printf '\n' ;
+done < <(gatttool -b $mac --characteristics |awk  '{print $12, $7, $15}' |tr -d ',')
