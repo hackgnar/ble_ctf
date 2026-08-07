@@ -54,3 +54,13 @@ Submit flag:
 | Flag 0x0052 | Hidden notify property | [More](docs/hints/flag18.md) |
 | Flag 0x0054 | Use multiple handle properties | [More](docs/hints/flag19.md) |
 | Flag 0x0056 | OSINT the author! | [More](docs/hints/flag20.md) |
+| Flag 0x005a | A characteristic is more than its value | [More](docs/hints/flag21.md) |
+| Flag 0x005d | The server can see who you are | [More](docs/hints/flag22.md) |
+| Flag 0x005f | You do not always need to connect | [More](docs/hints/flag23.md) |
+| Flag 0x0061 | Learn to read the error, not just the failure | [More](docs/hints/flag24.md) |
+| Flag 0x0063 | Find things by UUID, not by handle | [More](docs/hints/flag25.md) |
+| Flag 0x0065 | Descriptors are not read only | [More](docs/hints/flag26.md) |
+| Flag 0x0068 | Learn about queued long writes | [More](docs/hints/flag27.md) |
+| Flag 0x006a | Notifications are not ordered | [More](docs/hints/flag28.md) |
+| Flag 0x006d | A value is not a fixed property of a handle | [More](docs/hints/flag29.md) |
+| Flag 0x006f | Challenge and response | [More](docs/hints/flag30.md) |
